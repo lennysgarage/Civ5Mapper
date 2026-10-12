@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.Civ5Save
+*.Civ5Replay
+*.Civ5Map
+artifacts/
+.venv/
+*.egg-info/
+build/
+dist/
+
+# Local game caches and generated personal map export
+*.db
+*.db-shm
+*.db-wal
+map.html

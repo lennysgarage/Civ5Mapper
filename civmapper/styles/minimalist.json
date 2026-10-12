@@ -1,0 +1,10 @@
+{
+  "oceanColor": "#d4e3e8",
+  "unownedColor": "#e6e5d9",
+  "borderColor": "#343b40",
+  "borderWidth": 0.8,
+  "countryFontSize": 16,
+  "cityFontSize": 11,
+  "showMountains": false,
+  "showForests": false
+}

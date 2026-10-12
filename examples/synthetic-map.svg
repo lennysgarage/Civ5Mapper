@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 537.26 352.00">
+<title>SYNTHETIC DEMO — NOT PARSED GAME DATA</title>
+<rect width="100%" height="100%" fill="#315465"/>
+<style>text{font-family:Georgia,serif;fill:#292a28;paint-order:stroke;stroke:#f4e9ce;stroke-width:0.6px;stroke-linejoin:round} .country{font-weight:bold;letter-spacing:1px}</style>
+<text x="40" y="30" font-size="13">SYNTHETIC DEMO — NOT PARSED GAME DATA</text>
+<text x="40" y="49" font-size="10">Gold stars: empire capitals. Purple diamonds: city-state capitals.</text>
+<path data-owner="0" data-surface="land" d="M 95.43,208.00 L 95.43,192.00 L 109.28,184.00 L 109.28,168.00 L 95.43,160.00 L 95.43,144.00 L 109.28,136.00 L 123.14,144.00 L 136.99,136.00 L 136.99,120.00 L 150.85,112.00 L 150.85,96.00 L 164.71,88.00 L 178.56,96.00 L 192.42,88.00 L 206.28,96.00 L 220.13,88.00 L 233.99,96.00 L 233.99,112.00 L 247.85,120.00 L 247.85,136.00 L 233.99,144.00 L 233.99,160.00 L 247.85,168.00 L 247.85,184.00 L 233.99,192.00 L 220.13,184.00 L 206.28,192.00 L 206.28,208.00 L 220.13,216.00 L 220.13,232.00 L 233.99,240.00 L 233.99,256.00 L 220.13,264.00 L 206.28,256.00 L 192.42,264.00 L 178.56,256.00 L 164.71,264.00 L 150.85,256.00 L 150.85,240.00 L 136.99,232.00 L 136.99,216.00 L 123.14,208.00 L 109.28,216.00 Z" fill="#d99572" fill-rule="evenodd"><title>Amber League</title></path>
+<path data-owner="1" data-surface="land" d="M 233.99,256.00 L 233.99,240.00 L 247.85,232.00 L 247.85,216.00 L 233.99,208.00 L 233.99,192.00 L 247.85,184.00 L 247.85,168.00 L 233.99,160.00 L 233.99,144.00 L 247.85,136.00 L 247.85,120.00 L 233.99,112.00 L 233.99,96.00 L 247.85,88.00 L 261.70,96.00 L 275.56,88.00 L 289.42,96.00 L 303.27,88.00 L 317.13,96.00 L 330.98,88.00 L 344.84,96.00 L 344.84,112.00 L 358.70,120.00 L 372.55,112.00 L 386.41,120.00 L 386.41,136.00 L 400.27,144.00 L 400.27,160.00 L 414.12,168.00 L 414.12,184.00 L 400.27,192.00 L 400.27,208.00 L 386.41,216.00 L 386.41,232.00 L 372.55,240.00 L 358.70,232.00 L 344.84,240.00 L 344.84,256.00 L 330.98,264.00 L 317.13,256.00 L 303.27,264.00 L 289.42,256.00 L 275.56,264.00 L 261.70,256.00 L 247.85,264.00 Z" fill="#9ab77a" fill-rule="evenodd"><title>Verdant Union</title></path>
+<path data-owner="2" data-surface="land" d="M 400.27,256.00 L 400.27,240.00 L 414.12,232.00 L 427.98,240.00 L 441.84,232.00 L 455.69,240.00 L 455.69,256.00 L 441.84,264.00 L 441.84,280.00 L 427.98,288.00 L 414.12,280.00 L 414.12,264.00 Z" fill="#c5a6c7" fill-rule="evenodd"><title>Isles</title></path>
+<path d="M 414.12,280.00 L 427.98,288.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 427.98,288.00 L 441.84,280.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 150.85,256.00 L 164.71,264.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 178.56,256.00 L 192.42,264.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 164.71,264.00 L 178.56,256.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 206.28,256.00 L 220.13,264.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 192.42,264.00 L 206.28,256.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 233.99,256.00 L 247.85,264.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 220.13,264.00 L 233.99,256.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 261.70,256.00 L 275.56,264.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 247.85,264.00 L 261.70,256.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 289.42,256.00 L 303.27,264.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 275.56,264.00 L 289.42,256.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 317.13,256.00 L 330.98,264.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 303.27,264.00 L 317.13,256.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 330.98,264.00 L 344.84,256.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 400.27,256.00 L 414.12,264.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 414.12,264.00 L 414.12,280.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 441.84,264.00 L 441.84,280.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 441.84,264.00 L 455.69,256.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 136.99,232.00 L 150.85,240.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 150.85,240.00 L 150.85,256.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 220.13,232.00 L 233.99,240.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 233.99,240.00 L 233.99,256.00" fill="none" stroke="#292a28" stroke-width="1.40"/>
+<path d="M 233.99,240.00 L 247.85,232.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 344.84,240.00 L 344.84,256.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 358.70,232.00 L 372.55,240.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 344.84,240.00 L 358.70,232.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 400.27,240.00 L 400.27,256.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 372.55,240.00 L 386.41,232.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 414.12,232.00 L 427.98,240.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 400.27,240.00 L 414.12,232.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 441.84,232.00 L 455.69,240.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 455.69,240.00 L 455.69,256.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 427.98,240.00 L 441.84,232.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 95.43,208.00 L 109.28,216.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 123.14,208.00 L 136.99,216.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 136.99,216.00 L 136.99,232.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 109.28,216.00 L 123.14,208.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 206.28,208.00 L 220.13,216.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 220.13,216.00 L 220.13,232.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 233.99,208.00 L 247.85,216.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 247.85,216.00 L 247.85,232.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 386.41,216.00 L 386.41,232.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 386.41,216.00 L 400.27,208.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 95.43,192.00 L 95.43,208.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 95.43,192.00 L 109.28,184.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 206.28,192.00 L 206.28,208.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 220.13,184.00 L 233.99,192.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 233.99,192.00 L 233.99,208.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 206.28,192.00 L 220.13,184.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 233.99,192.00 L 247.85,184.00" fill="none" stroke="#292a28" stroke-width="1.40"/>
+<path d="M 400.27,192.00 L 400.27,208.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 400.27,192.00 L 414.12,184.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 95.43,160.00 L 109.28,168.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 109.28,168.00 L 109.28,184.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 233.99,160.00 L 247.85,168.00" fill="none" stroke="#292a28" stroke-width="1.40"/>
+<path d="M 247.85,168.00 L 247.85,184.00" fill="none" stroke="#292a28" stroke-width="1.40"/>
+<path d="M 400.27,160.00 L 414.12,168.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 414.12,168.00 L 414.12,184.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 95.43,144.00 L 95.43,160.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 109.28,136.00 L 123.14,144.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 95.43,144.00 L 109.28,136.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 123.14,144.00 L 136.99,136.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 233.99,144.00 L 233.99,160.00" fill="none" stroke="#292a28" stroke-width="1.40"/>
+<path d="M 233.99,144.00 L 247.85,136.00" fill="none" stroke="#292a28" stroke-width="1.40"/>
+<path d="M 386.41,136.00 L 400.27,144.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 400.27,144.00 L 400.27,160.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 136.99,120.00 L 136.99,136.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 136.99,120.00 L 150.85,112.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 233.99,112.00 L 247.85,120.00" fill="none" stroke="#292a28" stroke-width="1.40"/>
+<path d="M 247.85,120.00 L 247.85,136.00" fill="none" stroke="#292a28" stroke-width="1.40"/>
+<path d="M 344.84,112.00 L 358.70,120.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 372.55,112.00 L 386.41,120.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 386.41,120.00 L 386.41,136.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 358.70,120.00 L 372.55,112.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 150.85,96.00 L 150.85,112.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 164.71,88.00 L 178.56,96.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 150.85,96.00 L 164.71,88.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 192.42,88.00 L 206.28,96.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 178.56,96.00 L 192.42,88.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 220.13,88.00 L 233.99,96.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 233.99,96.00 L 233.99,112.00" fill="none" stroke="#292a28" stroke-width="1.40"/>
+<path d="M 206.28,96.00 L 220.13,88.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 247.85,88.00 L 261.70,96.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 233.99,96.00 L 247.85,88.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 275.56,88.00 L 289.42,96.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 261.70,96.00 L 275.56,88.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 303.27,88.00 L 317.13,96.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 289.42,96.00 L 303.27,88.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 330.98,88.00 L 344.84,96.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 344.84,96.00 L 344.84,112.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<path d="M 317.13,96.00 L 330.98,88.00" fill="none" stroke="#292a28" stroke-width="1.82"/>
+<g class="mountain" data-x="7" data-y="4"><title>Mountain</title><path d="M239.85,205.60 L247.85,189.60 L255.85,205.60 Z" fill="#858e8e" stroke="#242f35" stroke-width="1.3" stroke-linejoin="round"/><path d="M245.13,195.04 L247.85,189.60 L250.57,195.04 L247.85,193.76 Z" fill="#fff8e8"/></g>
+<g class="mountain" data-x="7" data-y="5"><title>Mountain</title><path d="M253.70,181.60 L261.70,165.60 L269.70,181.60 Z" fill="#858e8e" stroke="#242f35" stroke-width="1.3" stroke-linejoin="round"/><path d="M258.98,171.04 L261.70,165.60 L264.42,171.04 L261.70,169.76 Z" fill="#fff8e8"/></g>
+<g class="mountain" data-x="7" data-y="6"><title>Mountain</title><path d="M239.85,157.60 L247.85,141.60 L255.85,157.60 Z" fill="#858e8e" stroke="#242f35" stroke-width="1.3" stroke-linejoin="round"/><path d="M245.13,147.04 L247.85,141.60 L250.57,147.04 L247.85,145.76 Z" fill="#fff8e8"/></g>
+<text class="country" x="178.56" y="166.00" text-anchor="middle" font-size="18">Amber League</text>
+<text class="country" x="303.27" y="142.00" text-anchor="middle" font-size="18">Verdant Union</text>
+<g class="capital-marker" data-kind="empire" data-x="4" data-y="4"><title>Amberport — current capital</title><circle class="empire-capital" cx="164.71" cy="200.00" r="12" fill="#fff8e8" stroke="#3c3025" stroke-width="1.3"/><polygon points="164.71,190.64 167.11,196.70 173.61,197.11 168.59,201.26 170.21,207.57 164.71,204.08 159.21,207.57 160.83,201.26 155.81,197.11 162.31,196.70" fill="#c99734" stroke="#3c3025" stroke-width="0.9"/></g>
+<text x="180.71" y="204.00" font-size="10" font-weight="bold" class="city-label">Amberport</text>
+<g class="capital-marker" data-kind="empire" data-x="10" data-y="5"><title>Greenhaven — current capital</title><circle class="empire-capital" cx="344.84" cy="176.00" r="12" fill="#fff8e8" stroke="#3c3025" stroke-width="1.3"/><polygon points="344.84,166.64 347.24,172.70 353.74,173.11 348.72,177.26 350.34,183.57 344.84,180.08 339.34,183.57 340.96,177.26 335.94,173.11 342.44,172.70" fill="#c99734" stroke="#3c3025" stroke-width="0.9"/></g>
+<text x="360.84" y="180.00" font-size="10" font-weight="bold" class="city-label">Greenhaven</text>
+<circle class="city-marker" cx="414.12" cy="248.00" r="3.2" fill="#292a28" stroke="#f4e9ce" stroke-width="1.1"><title>Islewatch</title></circle>
+<text x="423.12" y="252.00" font-size="10" style="fill:#5b4775" class="city-state-label">Islewatch</text>
+</svg>

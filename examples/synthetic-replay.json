@@ -1,0 +1,207 @@
+{
+  "schemaVersion": "0.1",
+  "kind": "replay",
+  "source": {
+    "kind": "synthetic",
+    "sha256": "5c7dd1f061acebe0f07ddb783c8d8349442e27db75600ba98a5e29e0496aa453",
+    "description": "Fictional two-tile replay; never parsed game information."
+  },
+  "extraction": {
+    "status": "complete",
+    "fields": {
+      "events": "extracted",
+      "civilizations": "extracted",
+      "datasets": "extracted",
+      "tileGeography": "extracted",
+      "historicalCapitals": "unavailable",
+      "historicalRoads": "unavailable"
+    },
+    "warnings": [
+      "Replay reconstructs logged ownership/city changes only; historical capitals, alliances, roads and city populations are unavailable.",
+      "Physical geography is a snapshot, not a terrain-change history."
+    ]
+  },
+  "game": {
+    "gameVersion": "test",
+    "build": "build",
+    "turn": 3,
+    "modeId": 0,
+    "playerCivilizationKey": "CIVILIZATION_TEST",
+    "difficulty": "difficulty",
+    "startEra": "era",
+    "endEra": "era",
+    "speed": "speed",
+    "worldSize": "size",
+    "mapFilename": "Test.Civ5Map",
+    "playerCivilizationName": "",
+    "playerLeaderName": "",
+    "playerColorKey": "",
+    "replayVersion": 1,
+    "activePlayerIndex": 0,
+    "mapFilename2": "Test.Civ5Map",
+    "worldSizeId": 0,
+    "climateId": 0,
+    "seaLevelId": 0,
+    "eraId": 0,
+    "speedId": 0,
+    "gameOptions": [],
+    "victoryTypes": [],
+    "victoryAchieved": -1,
+    "startTurn": 0,
+    "startYear": -4000,
+    "endTurn": 3,
+    "endYear": "date",
+    "width": 2,
+    "height": 1,
+    "wrapX": null,
+    "wrapY": null,
+    "coordinates": "odd-r-bottom-up"
+  },
+  "civilizations": [
+    {
+      "id": 0,
+      "rulesetId": 0,
+      "leaderTypeId": 0,
+      "playerColorId": 0,
+      "difficultyId": 0,
+      "leader": "leader",
+      "longName": "CIVILIZATION_TEST",
+      "name": "CIVILIZATION_TEST",
+      "demonym": "demonym",
+      "kind": "unknown",
+      "color": null,
+      "key": "CIVILIZATION_TEST"
+    },
+    {
+      "id": 1,
+      "rulesetId": 1,
+      "leaderTypeId": 1,
+      "playerColorId": 1,
+      "difficultyId": 1,
+      "leader": "leader",
+      "longName": "MINOR_CIV_TEST",
+      "name": "MINOR_CIV_TEST",
+      "demonym": "demonym",
+      "kind": "unknown",
+      "color": null,
+      "key": "MINOR_CIV_TEST"
+    }
+  ],
+  "events": [
+    {
+      "turn": 0,
+      "typeId": 2,
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "civId": 0,
+      "text": "",
+      "sequence": 0
+    },
+    {
+      "turn": 0,
+      "typeId": 1,
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "civId": 0,
+      "text": "Alpha is founded.",
+      "sequence": 1
+    },
+    {
+      "turn": 2,
+      "typeId": 3,
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "civId": 1,
+      "text": "captured",
+      "sequence": 2
+    },
+    {
+      "turn": 3,
+      "typeId": 4,
+      "tiles": [
+        {
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "civId": -1,
+      "text": "razed",
+      "sequence": 3
+    }
+  ],
+  "datasets": [
+    {
+      "civId": 0,
+      "values": {
+        "Score": [
+          {
+            "turn": 0,
+            "value": 4
+          },
+          {
+            "turn": 3,
+            "value": 10
+          }
+        ]
+      }
+    },
+    {
+      "civId": 1,
+      "values": {
+        "Score": [
+          {
+            "turn": 0,
+            "value": 4
+          },
+          {
+            "turn": 3,
+            "value": 10
+          }
+        ]
+      }
+    }
+  ],
+  "tiles": [
+    {
+      "x": 0,
+      "y": 0,
+      "plotType": 2,
+      "terrainId": 0,
+      "featureId": null,
+      "riverEdges": [
+        "E"
+      ]
+    },
+    {
+      "x": 1,
+      "y": 0,
+      "plotType": 2,
+      "terrainId": 0,
+      "featureId": null,
+      "riverEdges": [
+        "E"
+      ]
+    }
+  ],
+  "inspection": {
+    "eventsOffset": 442,
+    "parsedEnd": 608,
+    "datasetNames": [
+      "Score"
+    ],
+    "eventProfile": "standard",
+    "headerProfile": "versioned-1"
+  }
+}

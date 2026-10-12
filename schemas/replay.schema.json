@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CivMapper replay event log 0.1",
+  "type": "object",
+  "required": ["schemaVersion", "kind", "source", "extraction", "game", "civilizations", "events", "tiles", "datasets"],
+  "properties": {
+    "schemaVersion": {"const": "0.1"},
+    "kind": {"const": "replay"},
+    "source": {"type": "object", "required": ["kind"], "properties": {"kind": {"enum": ["save", "replay", "synthetic"]}}},
+    "extraction": {"type": "object", "required": ["status", "fields", "warnings"], "properties": {"status": {"const": "complete"}, "fields": {"type": "object"}, "warnings": {"type": "array", "items": {"type": "string"}}}},
+    "game": {"type": "object", "required": ["startTurn", "endTurn", "width", "height", "wrapX", "coordinates"], "properties": {
+      "startTurn": {"type": "integer", "minimum": 0, "maximum": 100000},
+      "endTurn": {"type": "integer", "minimum": 0, "maximum": 100000},
+      "width": {"type": ["integer", "null"], "minimum": 1, "maximum": 1024},
+      "height": {"type": ["integer", "null"], "minimum": 1, "maximum": 1024},
+      "wrapX": {"type": ["boolean", "null"]},
+      "coordinates": {"const": "odd-r-bottom-up"}
+    }},
+    "civilizations": {"type": "array", "maxItems": 128, "items": {"type": "object", "required": ["id"], "properties": {"id": {"type": "integer", "minimum": 0}}}},
+    "events": {"type": "array", "maxItems": 500000, "items": {"type": "object", "required": ["turn", "typeId", "tiles", "civId", "text", "sequence"], "properties": {
+      "turn": {"type": "integer", "minimum": 0, "maximum": 100000},
+      "typeId": {"type": "integer", "minimum": 0},
+      "civId": {"type": "integer", "minimum": -1},
+      "text": {"type": "string"},
+      "sequence": {"type": "integer", "minimum": 0},
+      "tiles": {"type": "array", "maxItems": 500000, "items": {"$ref": "#/$defs/coordinate"}}
+    }}},
+    "tiles": {"type": ["array", "null"], "maxItems": 500000, "items": {"$ref": "#/$defs/coordinate"}},
+    "datasets": {"type": ["array", "null"], "items": {"type": "object", "required": ["civId", "values"], "properties": {"civId": {"type": "integer", "minimum": 0}, "values": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "object", "required": ["turn", "value"], "properties": {"turn": {"type": "integer", "minimum": 0, "maximum": 100000}, "value": {"type": "integer"}}}}}}}}
+  },
+  "$defs": {"coordinate": {"type": "object", "required": ["x", "y"], "properties": {"x": {"type": "integer", "minimum": 0, "maximum": 65535}, "y": {"type": "integer", "minimum": 0, "maximum": 65535}}}}
+}

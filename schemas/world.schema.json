@@ -1,0 +1,625 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://civmapper.example/schemas/world-0.1.json",
+  "title": "CivMapper experimental world 0.1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "source",
+    "extraction",
+    "game",
+    "civilizations",
+    "tiles",
+    "cities"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "0.1"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "save",
+            "map",
+            "game-export",
+            "synthetic"
+          ]
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "extraction": {
+      "type": "object",
+      "required": [
+        "status",
+        "fields",
+        "warnings"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "partial",
+            "complete"
+          ]
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": [
+              "extracted",
+              "partial",
+              "unavailable"
+            ]
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "game": {
+      "type": "object",
+      "required": [
+        "turn",
+        "width",
+        "height",
+        "wrapX",
+        "wrapY",
+        "coordinates"
+      ],
+      "properties": {
+        "turn": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "width": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 1024
+        },
+        "height": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 1024
+        },
+        "wrapX": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "wrapY": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "coordinates": {
+          "const": "odd-r-bottom-up"
+        }
+      }
+    },
+    "civilizations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/civilization"
+      }
+    },
+    "tiles": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "#/$defs/tile"
+      }
+    },
+    "cities": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "#/$defs/city"
+      }
+    },
+    "inspection": {
+      "type": "object"
+    },
+    "units": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "description": "Optional current plot-referenced unit state; absent/null means not extracted.",
+      "items": {
+        "$ref": "#/$defs/unit"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "extraction": {
+            "properties": {
+              "status": {
+                "const": "complete"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "tiles": {
+            "type": "array"
+          },
+          "cities": {
+            "type": "array"
+          },
+          "game": {
+            "properties": {
+              "width": {
+                "type": "integer"
+              },
+              "height": {
+                "type": "integer"
+              },
+              "wrapX": {
+                "type": "boolean"
+              },
+              "wrapY": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "civilization": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "key": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "major",
+            "city-state",
+            "barbarian",
+            "unknown"
+          ]
+        },
+        "eliminated": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "color": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "colorKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rulesetId": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "minorKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "nameKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "nameSource": {
+          "type": "string"
+        },
+        "playerName": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "turnOneSlotStatus": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "maximum": 4,
+          "description": "Validated turn-1 slot status from a matching save; absent/null means unknown."
+        },
+        "ally": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "allianceKnown": {
+          "type": "boolean"
+        },
+        "allianceSinceTurn": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "allianceEvidence": {
+          "type": "object"
+        },
+        "capitalKnown": {
+          "type": "boolean"
+        },
+        "capitalCityId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "capitalEvidence": {
+          "type": "object"
+        }
+      }
+    },
+    "tile": {
+      "type": "object",
+      "required": [
+        "x",
+        "y",
+        "landWater",
+        "owner",
+        "ownershipKnown"
+      ],
+      "properties": {
+        "x": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "landWater": {
+          "enum": [
+            "land",
+            "water",
+            null
+          ]
+        },
+        "owner": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "ownershipKnown": {
+          "type": "boolean"
+        },
+        "terrain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "feature": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "elevation": {
+          "enum": [
+            "flat",
+            "hills",
+            "mountain",
+            null
+          ]
+        },
+        "isLake": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "riverEdges": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "E",
+              "SE",
+              "SW"
+            ]
+          }
+        },
+        "visibility": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "enum": [
+              "visible",
+              "revealed",
+              "unrevealed",
+              "unknown"
+            ]
+          }
+        },
+        "terrainId": {
+          "type": "integer"
+        },
+        "featureHash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{8}$"
+        },
+        "resourceHash": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{8}$"
+        },
+        "riverFlowDirections": {
+          "type": "object",
+          "properties": {
+            "E": {
+              "type": "integer",
+              "minimum": -1,
+              "maximum": 5
+            },
+            "SE": {
+              "type": "integer",
+              "minimum": -1,
+              "maximum": 5
+            },
+            "SW": {
+              "type": "integer",
+              "minimum": -1,
+              "maximum": 5
+            }
+          }
+        },
+        "cityReference": {
+          "type": "object",
+          "required": [
+            "owner",
+            "localId"
+          ],
+          "properties": {
+            "owner": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "localId": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "routeKnown": {
+          "type": "boolean"
+        },
+        "routeId": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "route": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "routePillaged": {
+          "type": "boolean"
+        }
+      }
+    },
+    "city": {
+      "type": "object",
+      "required": [
+        "name",
+        "x",
+        "y",
+        "owner",
+        "capital"
+      ],
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "x": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "owner": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "capital": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "localId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "population": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "nameKey": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "nameSource": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "object"
+        }
+      }
+    },
+    "unit": {
+      "type": "object",
+      "required": [
+        "id",
+        "localId",
+        "owner",
+        "x",
+        "y",
+        "unitTypeId",
+        "unitTypeHash",
+        "classificationKnown",
+        "isMilitary",
+        "type",
+        "domain"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "localId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "owner": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "x": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unitTypeId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unitTypeHash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}$"
+        },
+        "classificationKnown": {
+          "type": "boolean"
+        },
+        "isMilitary": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "domain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "combatClass": {
+          "type": ["string", "null"]
+        },
+        "unitClass": {
+          "type": ["string", "null"]
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidence": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

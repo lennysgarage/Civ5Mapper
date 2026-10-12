@@ -1,0 +1,33 @@
+Portions of the binary layout/map-header/replay readers adapt MIT-licensed
+code by Samuel Yuan, Copyright (c) 2022. The complete original copyright and
+permission notice is preserved in third_party/binary-layout-LICENSE.md.
+Reviewed source revision: 4ecadf1b4ac656cc113ee2d8da64ce8c85db9d29.
+No external renderer or Go runtime dependency is bundled.
+
+Additional research references (no implementation bundled):
+- bmaupin/js-civ5save (MIT): setup-header scope and compatibility references.
+- rivarolle/civ5-saveparser (MIT), commit bb4e825d005a0e5c4e4903ba29c4691fa0c78fcf:
+  legacy header investigation.
+- Gedemon/Civ5-DLL: SDK serialization declarations consulted as format evidence.
+  SDK source carries separate game copyright; no SDK source is included or
+  relicensed here. New Python readers are experimental format implementations.
+User game saves/cache databases are local research inputs, not distributed assets.
+
+Alliance format reference: EnormousApplePie/Lekmod, LEKMOD_DLL/CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp and .h, consulted 2026-10-10. No Lekmod source code is bundled.
+Capital/route format references: Gedemon/Civ5-DLL CvPlayer.cpp and CvPlot.cpp,
+EnormousApplePie/Lekmod CvPlayer.cpp and CvPlot.cpp, and whoward69/DLL-VMC
+CvPlayer.cpp, consulted 2026-10-10. Format evidence only; no source bundled.
+
+Replay/map readers and event semantics adapt the reviewed MIT source revision
+above, especially fileio/civ5replay.go, civ5map.go, civ5mapapi.go and civ5save.go.
+Additional evidence: Lekmod CvGame.cpp and CvReplayMessage.cpp and Gedemon SDK
+CvReplayInfo.cpp/CvReplayMessage.cpp, consulted 2026-10-10/11. No game SDK or
+Lekmod source is bundled. Local upstream scenario JSON was used for validation
+only and is not redistributed as a project fixture.
+
+Unit format evidence: Gedemon/Civ5-DLL CvUnit.h/CvUnit.cpp, CvPlot.cpp,
+CvPromotionClasses.cpp and FireWorks archive/vector declarations; and
+EnormousApplePie/Lekmod CvUnit.h/CvUnit.cpp, consulted 2026-10-11. Declaration
+order establishes unit identity prefixes; archive-tail/promotions layouts and
+empirical per-DLL offsets are documented separately. No SDK/Lekmod source is
+bundled or relicensed. Terrain/army rendering uses original Python/SVG code.
