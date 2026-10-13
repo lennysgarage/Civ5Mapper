@@ -9,6 +9,7 @@ artifacts/
 build/
 dist/
 node_modules/
+.wrangler/
 assets/wasm/
 assets/licenses/
 
