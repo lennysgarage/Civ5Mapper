@@ -1,17 +1,18 @@
 # Replay CLI experiment
 
-Install the command and optional GIF dependencies, then activate the virtualenv:
+Build with Node 22.12+ and optionally register the local command:
 
 ```sh
-python3 -m venv .venv
-.venv/bin/python -m pip install -e '.[gif]'
-source .venv/bin/activate
+npm ci
+npm run build
+npm link
 civmapper --help
 ```
 
-`extract-replay` exports reusable replay JSON. No Go runtime is used. SVG rendering and replay
-parsing remain standard-library operations. GIF uses Pillow and CairoSVG so
-frames reuse the existing SVG colors, borders, geography and labels.
+`extract-replay` exports reusable replay JSON. The shared TypeScript renderer
+produces SVG frames; Resvg WASM and gifenc provide local PNG/GIF encoding.
+The static browser app also supports replay playback, turn selection, captions
+and GIF download. [Browser instructions](browser.md).
 
 ```sh
 civmapper extract-replay game.Civ5Replay -o replay.json
@@ -83,7 +84,7 @@ including overflow events. GIFs show the shortened text only. A turn without
 a qualifying event displays `No major events recorded this turn.` Visual line
 breaks and repeated whitespace are normalized; original messages remain in
 the tooltips and original replay JSON. No facts or captions are added to the
-normalized world/replay schemas. Python `render_replay(..., captions=True)`
+normalized world/replay schemas. Core `exportReplay(..., {captions: true})`
 also includes complete caption strings in its per-frame report.
 
 ## Implemented parity and deliberate limits
@@ -130,7 +131,7 @@ replays have the complete embedded dataset categories and turn/value arrays.
 
 ## Format evidence and real verification
 
-The local upstream checkout is pinned to the requested commit. Python map and
+The local upstream checkout is pinned to the requested commit. Map and
 standard replay layouts adapt its MIT implementation; attribution is in NOTICE.
 Observed Lekmod messages add three int32 fields between tiles and civilization
 ID. They are retained as `extendedData` rather than interpreted as map facts.
@@ -149,7 +150,7 @@ ported or advertised as supported.
 (Casimir III twice and Gajah Mada) present a version-0/legacy layout that remains
 unsupported, with explicit errors. They need older serialization evidence and
 new fixtures; no partial animation is substituted. `artifacts/replay-corpus-report.json`
-records every result. `scripts/validate_replays.py` reproduces the check.
+records every result. `scripts/validate_replays.mjs` reproduces the check.
 
 All 138 copied saves pass sequential embedded replay parsing (including the
 initial save with an empty log); results are in
@@ -162,7 +163,7 @@ last replay state has all 56 current cities and exactly 1,275 owned tiles.
 Verification compares each final owner/city coordinate against current save
 extraction. A real `.Civ5Replay` and an explicitly synthetic fixture also render.
 The local `europe1939.json` adapter matches all 9,828 physical/political tiles,
-258 cities and 39 owner entries. `scripts/validate_upstream_map.py` reproduces
+258 cities and 39 owner entries. `scripts/validate_map.mjs` reproduces
 that data check; atlas pixel parity is not claimed. A copied real v12 map also
 validates its free-list arrays. V11 uses synthetic binary fixtures.
 

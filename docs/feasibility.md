@@ -20,8 +20,8 @@ serialization source were inspected. Adapted layout code is attributed in
 | [Civ V SDK source mirror](https://github.com/Gedemon/Civ5-DLL) | CvMap/CvPlot/CvCity serialization routines | Format evidence only. SDK copyright is separate from MIT; no SDK source bundled |
 
 Existing header/map parsing informed the experiment. The missing work was
-current compressed plot/city extraction, so a small standard-library Python
-reader was added instead of translating the full upstream Go renderer or
+current compressed plot/city extraction, so a small experimental reader
+was added instead of translating the full upstream Go renderer or
 adopting a framework. SDK layout evidence was cross-checked against actual
 records; empirical modpack offsets have explicit profiles, not invented field
 meanings. [NOTICE](../NOTICE) records attribution.
@@ -159,19 +159,19 @@ ignored `artifacts/`, not distributed as open-source fixtures.
 
 [README](../README.md) contains executable extraction/render/test commands.
 `artifacts/corpus-report.json` records each file's hash, dimensions, mode,
-profile, turn, decoded city count, capitals and route counts. 78 automated tests passed, including GIF export when optional dependencies are installed. In-memory fixtures exercise
+profile, turn, decoded city count, capitals and route counts. 318 TypeScript tests pass, including native PNG/GIF integration and 312 synthetic comparison cases. In-memory fixtures exercise
 chunk deframing, malformed data/limits, plot variable tails, full coordinates,
 aggregate checks, city joins, metadata enrichment and renderer geometry.
 The draft schema is validated against real and synthetic JSON. SVG is valid
-XML; PNG is generated through optional CairoSVG and visually inspected.
+XML; PNG is generated through Resvg WASM. Browser exports and CLI raster outputs are verified separately.
 No screenshot or independent in-game export has been supplied; count/coordinate
 checks establish strong internal consistency, not an independent visual proof.
 
 ## Minimal architecture and next experiments
 
-Keep parser, normalized world and renderer separate. Core extraction/SVG has
-no runtime dependencies; optional read-only ruleset enrichment and CairoSVG PNG
-conversion remain adapters. Exact hex edge unions create land polygons with
+Keep parser, normalized world and renderer separate. The TypeScript core uses bounded pako decompression and portable collection
+helpers; optional read-only ruleset enrichment uses sql.js. Resvg WASM PNG
+conversion and gifenc export remain separate adapters. Exact hex edge unions create land polygons with
 holes/islands; coastline/border strokes retain topology. Stable labels use a
 largest-component centroid tile and approximate collision boxes. Polylabel,
 seam-aware label placement, smoothing and high-quality typography remain
@@ -184,7 +184,8 @@ refinements after independent state validation.
    document each profile's evidence before expanding compatibility claims.
 4. Improve labels and introduce conservative border simplification only after
    geography is independently verified. Never let style alter source positions.
-5. Later add web upload, historical snapshots/replay, exports and decoration.
+5. Extend browser-only replay exploration and decoration after validating the
+   current save/replay fields. A save upload backend is unnecessary.
 
 If binary compatibility becomes impractical, a matching in-game Lua/mod export
 can supply exact state after loading the save. That fallback needs the game
@@ -276,8 +277,8 @@ the next step for validation beyond internal record consistency.
 ## Replay CLI and river follow-up
 
 Replay parsing/GIF rendering and unknown-save diagnostics are documented in
-[docs/replays.md](replays.md). The optional GIF adapter adds Pillow and uses the
-same SVG renderer through CairoSVG. It supports standalone replay version 1,
+[docs/replays.md](replays.md). The TypeScript GIF adapter uses Resvg WASM and gifenc with the
+same SVG renderer. It supports standalone replay version 1,
 standard and observed extended messages, save state version 1 messages, map
 versions 11/12 and upstream/normalized JSON base maps. No new full-world save
 profile is claimed. Three older standalone replay files remain unsupported.
@@ -334,7 +335,7 @@ optional normalized unit data. Units can stand on unowned or foreign tiles.
 The supplied turn-132 save has 497 plot-referenced units and the turn-91
 multiplayer save has 241. All references uniquely match validated version-9
 records. The three six-yield singleplayer samples also pass (76, 336 and 148
-units). `scripts/validate_units.py` checks the entire copied corpus and optionally
+units). `scripts/validate_units.mjs` checks the entire copied corpus and optionally
 all type hashes against a matching ruleset; its report is stored locally under
 `artifacts/unit-corpus-report.json`.
 
@@ -361,3 +362,13 @@ turn-132 example, 328 major-empire military units produce totals
 26, 11, 105, 38, 33 and 115 across six current empires. Known inactive roster
 slots without units are omitted using explicit alive/eliminated evidence;
 unknown activity is retained. These are unit counts, not strength or readiness.
+
+
+## TypeScript browser migration
+
+The format evidence and supported profiles above are unchanged. The current
+implementation lives in `packages/core/src`, with shared Node CLI and static
+browser clients. Python and its upload server were retired after synthetic and
+real-file comparisons. [Migration validation](typescript-migration.md) records
+the compatibility audit; [browser hosting](browser.md) describes session-local
+save/database loading. This does not establish compatibility with new DLLs.

@@ -8,9 +8,13 @@ artifacts/
 *.egg-info/
 build/
 dist/
+node_modules/
+assets/wasm/
+assets/licenses/
 
 # Local game caches and generated personal map export
 *.db
 *.db-shm
 *.db-wal
+!assets/databases/*.db
 map.html

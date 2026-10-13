@@ -1,0 +1,55 @@
+export const PRESETS = {
+  atlas:
+    "Colorful political atlas with mountains, forests and defined borders.",
+  parchment: "Warm parchment colors with muted oceans and brown outlines.",
+  minimalist:
+    "Light oceans and thin borders, without mountain or forest icons.",
+};
+
+export const STYLES = {
+  minimalist: {
+    oceanColor: "#d4e3e8",
+    unownedColor: "#e6e5d9",
+    borderColor: "#343b40",
+    borderWidth: 0.8,
+    countryFontSize: 16,
+    cityFontSize: 11,
+    showMountains: false,
+    showForests: false,
+  },
+  parchment: {
+    oceanColor: "#9caba4",
+    unownedColor: "#e5d4ac",
+    borderColor: "#4b3c2e",
+    borderWidth: 1.2,
+    countryFontSize: 18,
+    cityFontSize: 11,
+    showForests: false,
+  },
+  atlas: {
+    oceanColor: "#315465",
+    unownedColor: "#eee7d5",
+    borderColor: "#292a28",
+    borderWidth: 1.4,
+    showCities: true,
+    showMountains: true,
+    showCivilizationNames: true,
+    empireLabels: "player",
+    shadeAlliedCityStates: true,
+    allyShade: 0.35,
+    ownedWaterColor: "#699d9f",
+    showOwnedWater: true,
+    mountainSize: 16,
+    showCapitals: true,
+    capitalSize: 12,
+    showRoads: true,
+    roadColor: "#665548",
+    roadWidth: 2,
+    railroadColor: "#343e44",
+    cityStateLabelColor: "#5b4775",
+    showRivers: true,
+    riverColor: "#397c9b",
+    riverWidth: 2,
+    showUnownedPattern: true,
+  },
+};

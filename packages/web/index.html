@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CivMapper</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  </head>
+  <body>
+    <header>
+      <strong>CivMapper</strong
+      ><label
+        >Style
+        <select id="style">
+          <option value="atlas">Atlas</option>
+          <option value="parchment">Parchment</option>
+          <option value="minimalist">Minimalist</option>
+        </select></label
+      ><label class="choose"
+        >Open save / JSON<input
+          id="save"
+          type="file"
+          accept=".Civ5Save,.json" /></label
+      ><button id="cancel" hidden>Cancel</button
+      ><span
+        id="loading"
+        class="loading-spinner"
+        aria-hidden="true"
+        hidden
+      ></span
+      ><span id="message" role="status"
+        >Drop a save to explore its world. Files stay on your device.</span
+      >
+    </header>
+    <details id="inputs">
+      <summary>Lekmod databases and replay tools</summary>
+      <div class="input-row">
+        <label
+          ><input id="bundled-metadata" type="checkbox" checked />Use bundled
+          Lekmod metadata</label
+        >
+        <label
+          >Matching ruleset<input
+            id="ruleset"
+            type="file"
+            accept=".db" /></label
+        ><label
+          >Localization<input
+            id="localization"
+            type="file"
+            accept=".db" /></label
+        ><label
+          ><input id="player-names" type="checkbox" checked />Show saved player
+          names</label
+        >
+      </div>
+      <p class="hint">
+        City names, terrain, civilization colors and military types use bundled
+        Lekmod metadata automatically. For another version, choose matching
+        Civ5DebugDatabase.db and Localization-Merged.db from your game's cache.
+        Changes update the current map automatically.
+      </p>
+      <div class="input-row">
+        <label
+          >Replay<input
+            id="replay"
+            type="file"
+            accept=".Civ5Replay,.Civ5Save,.json" /></label
+        ><label
+          >Base map (optional)<input
+            id="base"
+            type="file"
+            accept=".Civ5Map,.json" /></label
+        ><label
+          >Owner mapping (optional)<input
+            id="owner-map"
+            type="file"
+            accept=".json" /></label
+        ><label
+          >Wrap<select id="wrap">
+            <option value="auto">From input</option>
+            <option value="true">Horizontal</option>
+            <option value="false">No wrap</option>
+          </select></label
+        >
+      </div>
+      <div class="input-row">
+        <label
+          >Mode<select id="replay-mode">
+            <option value="political">Political</option>
+            <option value="physical">Physical</option>
+          </select></label
+        ><label
+          ><input id="captions" type="checkbox" checked />Replay captions</label
+        ><label
+          >Frame duration (ms)<input
+            id="duration"
+            type="number"
+            min="10"
+            max="60000"
+            value="1000" /></label
+        ><label
+          >Eventful turns (0 = all)<input
+            id="maxturns"
+            type="number"
+            min="0"
+            value="0" /></label
+        ><label
+          >GIF scale<input
+            id="gif-scale"
+            type="number"
+            min="0.25"
+            max="2"
+            step="0.25"
+            value="0.5" /></label
+        ><button id="load-replay">Load replay</button>
+      </div>
+    </details>
+    <div id="downloads" hidden>
+      <button id="download-json">World JSON</button
+      ><button id="download-replay">Replay JSON</button
+      ><button id="download-gif">Replay GIF</button>
+    </div>
+    <section id="metadata-notice" role="status" hidden>
+      <span id="metadata-message"></span>
+      <button id="configure-metadata">Choose matching databases</button>
+    </section>
+    <div id="playback" hidden>
+      <button id="previous">Previous</button><button id="play">Play</button
+      ><button id="next">Next</button
+      ><input
+        id="turn"
+        type="range"
+        min="0"
+        max="0"
+        value="0"
+        aria-label="Replay turn"
+      /><span id="turn-label"></span>
+    </div>
+    <main id="drop">
+      <section id="loading-panel" aria-labelledby="loading-title" hidden>
+        <h1 id="loading-title">Opening your save</h1>
+        <p id="loading-file"></p>
+        <div
+          id="upload-progress"
+          role="progressbar"
+          aria-label="Opening file"
+          aria-describedby="loading-stage"
+        >
+          <span></span>
+        </div>
+        <p id="loading-stage"></p>
+        <button id="cancel-upload">Cancel</button>
+      </section>
+      <div id="welcome">
+        <h1>Your world, mapped.</h1>
+        <p>Drop a Civilization V save here, or choose Open save.</p>
+        <p>
+          Explore political, physical and army views. Export the visible map as
+          PNG or SVG.
+        </p>
+      </div>
+      <iframe id="viewer" title="Interactive Civilization map" hidden></iframe>
+    </main>
+    <script type="module" src="./src/app.ts"></script>
+  </body>
+</html>

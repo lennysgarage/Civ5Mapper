@@ -10,8 +10,8 @@ Additional research references (no implementation bundled):
   legacy header investigation.
 - Gedemon/Civ5-DLL: SDK serialization declarations consulted as format evidence.
   SDK source carries separate game copyright; no SDK source is included or
-  relicensed here. New Python readers are experimental format implementations.
-User game saves/cache databases are local research inputs, not distributed assets.
+  relicensed here. The experimental readers are experimental format implementations.
+User game saves are local research inputs, not distributed assets.
 
 Alliance format reference: EnormousApplePie/Lekmod, LEKMOD_DLL/CvGameCoreDLL_Expansion2/CvMinorCivAI.cpp and .h, consulted 2026-10-10. No Lekmod source code is bundled.
 Capital/route format references: Gedemon/Civ5-DLL CvPlayer.cpp and CvPlot.cpp,
@@ -30,4 +30,18 @@ CvPromotionClasses.cpp and FireWorks archive/vector declarations; and
 EnormousApplePie/Lekmod CvUnit.h/CvUnit.cpp, consulted 2026-10-11. Declaration
 order establishes unit identity prefixes; archive-tail/promotions layouts and
 empirical per-DLL offsets are documented separately. No SDK/Lekmod source is
-bundled or relicensed. Terrain/army rendering uses original Python/SVG code.
+bundled or relicensed. Terrain/army rendering uses original TypeScript/SVG code.
+
+
+TypeScript runtime dependencies are identified in package.json/package-lock.json.
+Bundled WASM and browser dependency license notices are in third_party/runtime-LICENSES.txt.
+Fallback DejaVu fonts are bundled under their preserved license in
+third_party/fonts-LICENSE.txt. Saves are never distributed as part of the application.
+
+Default browser metadata in assets/databases is a compact lookup subset derived
+from the user-provided Civilization V / Lekmod caches. It contains identities,
+terrain/route/feature types, RGB values, military attributes and English names,
+without save state, artwork or unrelated game text. Source and output hashes are
+recorded in assets/databases/manifest.json; scripts/prepare_browser_databases.mjs
+reproduces the subset. Game and mod metadata retains its original ownership;
+the project's MIT license applies to CivMapper code, not third-party game data.

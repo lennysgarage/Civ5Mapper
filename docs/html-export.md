@@ -2,8 +2,8 @@
 
 `render-save ... -o map.html` and `render world.json -o map.html` export one
 self-contained file (`.htm` is also accepted). Open it directly in a modern
-browser, including from `file://`. Python's standard library generates the
-document; PNG/GIF dependencies are unnecessary. No web server, CDN, remote
+browser, including from `file://`. The shared TypeScript core generates the
+document; viewing it needs no runtime dependencies. No web server, CDN, remote
 font, account or network connection is needed.
 
 ```sh
@@ -71,7 +71,7 @@ markers, exclude civilians/city-states/barbarians, and omit known inactive
 empires with no forces. Without unit data, empire cards show city counts and
 the army view is disabled; unavailable data is never presented as zero forces.
 
-All views reuse `render_svg`; HTML adds selection metadata to rendered features
+All views reuse `renderSvg`; HTML adds selection metadata to rendered features
 without altering hex geography, borders or unit positions. View switches reuse
 embedded SVGs and retain the viewport/highlight. Physical requires resolved
 terrain names; army requires extracted positions and military classification.
@@ -92,13 +92,13 @@ network settings. JSON is escaped for script boundaries, dynamic details use
 text nodes, and all SVG names/identities are escaped. Embedded snapshots can
 make the file several MB. `--scale` applies to PNG exports, not HTML zoom.
 
-Replay HTML, timeline playback, editing, theme switching and map downloads are
-not implemented. Replay exports remain SVG/GIF and cannot reconstruct armies.
+The static browser app adds timeline playback, theme selection and replay GIF
+downloads. Offline map HTML exports a selected frame with its available views,
+without a replay timeline. Replay logs cannot reconstruct armies.
 
 ## Verification
 
-Run `python3 -m unittest discover -s tests -v` for Python/CLI/schema-adjacent
-checks. The browser acceptance check requires Node 22+ and an installed Chromium
+Run `npm run build && npm test` for parser, renderer and CLI checks. The browser acceptance check requires Node 22+ and an installed Chromium
 executable; it has no npm dependencies:
 
 ```sh
@@ -117,5 +117,5 @@ example is `artifacts/turn132-interactive.html`.
 New HTML exports include **Export PNG**. This saves the current map area, mode,
 layer visibility, player filters and highlight using browser canvas; it omits
 the sidebar. Use **Fit map** for the whole world. Resolution is twice the visible
-map size, capped at 4096 pixels per side, without requiring CairoSVG. The same
-viewer is available through the [local upload server](server.md).
+map size, capped at 4096 pixels per side, using browser canvas. The same
+viewer is available in the [static browser application](browser.md).
