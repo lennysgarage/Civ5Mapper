@@ -109,6 +109,13 @@
     },
     "culture": {
       "$ref": "#/$defs/culture"
+    },
+    "religions": {
+      "type": "array",
+      "description": "Optional current religion identity and name metadata; independent from political ownership.",
+      "items": {
+        "$ref": "#/$defs/religion"
+      }
     }
   },
   "allOf": [
@@ -331,8 +338,45 @@
         },
         "routePillaged": {
           "type": "boolean"
+        },
+        "territoryCityKnown": {
+          "type": "boolean"
+        },
+        "territoryCityReference": {
+          "type": ["object", "null"],
+          "required": ["owner", "localId"],
+          "properties": {
+            "owner": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "localId": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["territoryCityReference"],
+            "properties": {
+              "territoryCityReference": {
+                "type": "object"
+              }
+            }
+          },
+          "then": {
+            "required": ["territoryCityKnown"],
+            "properties": {
+              "territoryCityKnown": {
+                "const": true
+              }
+            }
+          }
+        }
+      ]
     },
     "city": {
       "type": "object",
@@ -375,8 +419,54 @@
         },
         "evidence": {
           "type": "object"
+        },
+        "religionKnown": {
+          "type": "boolean"
+        },
+        "religions": {
+          "type": ["array", "null"],
+          "items": {
+            "$ref": "#/$defs/religionRecord"
+          }
+        },
+        "majorityReligionId": {
+          "type": ["integer", "null"],
+          "minimum": -1
+        },
+        "religionEvidence": {
+          "type": "object"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["religionKnown"],
+            "properties": {
+              "religionKnown": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": ["religions"],
+            "properties": {
+              "religions": {
+                "type": "array"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "religions": {
+                "type": "null"
+              },
+              "majorityReligionId": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
     },
     "unit": {
       "type": "object",
@@ -563,6 +653,85 @@
               "minimum": 1
             }
           }
+        }
+      }
+    },
+    "religionRecord": {
+      "type": "object",
+      "required": ["religionId", "followers", "pressure", "holyCity"],
+      "properties": {
+        "religionId": {
+          "type": "integer",
+          "minimum": -1,
+          "description": "-1 unaffiliated, 0 pantheon, positive founded religion ID."
+        },
+        "followers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pressure": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "holyCity": {
+          "type": "boolean",
+          "description": "Per-religion holy status, independent of current majority."
+        },
+        "tradeRoutesApplyingPressure": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "religion": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "key": {
+          "type": "string"
+        },
+        "nameKey": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "customName": {
+          "type": ["string", "null"]
+        },
+        "customNameKnown": {
+          "type": "boolean"
+        },
+        "nameSource": {
+          "type": "string"
+        },
+        "metadataIdentity": {
+          "type": "string"
+        },
+        "founder": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "holyCity": {
+          "type": ["object", "null"],
+          "required": ["x", "y"],
+          "properties": {
+            "x": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "y": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "evidence": {
+          "type": "object"
         }
       }
     }

@@ -410,12 +410,21 @@ try {
     );
     assert.ok(
       available.every((mode) =>
-        ["political", "physical", "army", "culture"].includes(mode),
+        ["political", "physical", "army", "culture", "religion"].includes(mode),
       ),
     );
     const world = await evaluate(
       'JSON.parse(document.querySelector("#world-data").textContent).world',
     );
+    assert.deepEqual(available, [
+      "political",
+      "physical",
+      "army",
+      ...(world.culture ? ["culture"] : []),
+      ...(world.cities.some((c) => c.religionKnown === true)
+        ? ["religion"]
+        : []),
+    ]);
     assert.ok(world.cities.every((c) => !c.name.startsWith("TXT_KEY_")));
     assert.ok(world.tiles.every((t) => typeof t.terrain === "string"));
     assert.ok(world.units.every((u) => u.classificationKnown === true));
@@ -497,6 +506,148 @@ try {
       await evaluate('document.querySelector("[data-layer=armies]").click()');
       passed("army layer toggle");
     }
+  }
+  if (available.includes("religion")) {
+    await evaluate(
+      'document.querySelector("#mode").value="religion";document.querySelector("#mode").dispatchEvent(new Event("change"));document.querySelector("#clear-focus").click()',
+    );
+    const religion = await evaluate(`(()=>{
+      const w=JSON.parse(document.querySelector('#world-data').textContent).world;
+      const markers=Array.from(document.querySelectorAll('#stage .religion-marker'));
+      const holy=document.querySelectorAll('#stage .holy-city-marker').length;
+      const expectedHoly=w.cities.filter(c=>c.religionKnown===true&&c.religions.some(r=>r.holyCity)).length;
+      const paths=Array.from(document.querySelectorAll('#stage .religion-territory'));
+      markers[0].dispatchEvent(new MouseEvent('click',{bubbles:true}));
+      return {markers:markers.length,cities:w.cities.length,holy,expectedHoly,
+        assigned:paths.filter(p=>p.dataset.religionId!=='unknown').length,
+        legends:document.querySelectorAll('#stage .religion-legend').length,
+        details:document.querySelector('#details').textContent};
+    })()`);
+    assert.equal(religion.markers, religion.cities);
+    assert.equal(religion.holy, religion.expectedHoly);
+    assert.ok(religion.assigned > 0);
+    assert.ok(religion.legends > 0);
+    assert.match(religion.details, /Religion/);
+    assert.match(religion.details, /followers/);
+    passed(
+      "religion markers, exact assigned territories, holy status and city details",
+    );
+    for (const [layer, selector] of [
+      ["religionTerritories", ".religion-territory"],
+      ["holyCities", ".holy-city-marker"],
+    ]) {
+      if (layer === "holyCities" && !religion.holy) continue;
+      await evaluate(`document.querySelector('[data-layer=${layer}]').click()`);
+      assert.equal(
+        await evaluate(
+          `Array.from(document.querySelectorAll('#stage ${selector}')).every(n=>getComputedStyle(n).display==='none')`,
+        ),
+        true,
+      );
+      await evaluate(`document.querySelector('[data-layer=${layer}]').click()`);
+    }
+    const svg = await evaluate(`(async()=>{
+      const create=URL.createObjectURL,click=HTMLAnchorElement.prototype.click;let blob;
+      URL.createObjectURL=b=>{blob=b;return create.call(URL,b)};
+      HTMLAnchorElement.prototype.click=function(){};
+      try{document.querySelector('#export-svg').click();return await blob.text();}
+      finally{URL.createObjectURL=create;HTMLAnchorElement.prototype.click=click;}
+    })()`);
+    assert.match(svg, /religion-territory/);
+    assert.match(svg, /religion-marker/);
+    if (religion.holy) assert.match(svg, /holy-city-marker/);
+    passed("religion layer toggles and SVG download");
+    const selection = await evaluate(`(async()=>{
+      document.querySelector('#clear-focus').click();
+      const w=JSON.parse(document.querySelector('#world-data').textContent).world;
+      const path=Array.from(document.querySelectorAll('#stage .religion-territory')).find(p=>Number(p.dataset.religionId)>0);
+      if(!path)throw new Error('No known faith territory to select');
+      const id=path.dataset.religionId;
+      path.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+      const state=window.civmapperViewer.getState();
+      const expected=w.cities.filter(c=>c.religionKnown===true).reduce((sum,c)=>sum+(c.religions.find(r=>String(r.religionId)===id)?.followers??0),0);
+      const selected=document.querySelector('#religion-select').value===id&&state.selectedReligion===id&&state.selected==='';
+      const paths=Array.from(document.querySelectorAll('#stage .religion-territory'));
+      const highlighted=paths.every(n=>!n.classList.contains('focus-muted'));
+      const heatmap=paths.every(n=>{
+        const c=w.cities.find(c=>c.owner+':'+c.localId===n.dataset.religionCity);
+        const followers=c?.religionKnown===true?(c.religions.find(r=>String(r.religionId)===id)?.followers??0):null;
+        return n.querySelector('title').textContent.includes(''+(followers??'Unknown')+' followers');
+      })&&document.querySelector('.religion-heatmap-legend').textContent.includes('followers / city population');
+      const details=document.querySelector('#details').textContent;
+      const card=document.querySelector('.religion-card[data-religion-id="'+id+'"]');
+      const summary=card.textContent.includes(String(expected))&&card.classList.contains('active');
+      document.querySelector('#mode').value='political';document.querySelector('#mode').dispatchEvent(new Event('change'));
+      window.civmapperViewer.restoreState(state);
+      const restored=window.civmapperViewer.getState().selectedReligion===id;
+      const holy=Array.from(document.querySelectorAll('#stage .holy-city-marker')).find(n=>n.dataset.holyReligionId===id);
+      const holyColored=!holy||holy.getAttribute('fill')!== '#fff8e8';
+      if(holy)holy.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+      const holySelect=!holy||window.civmapperViewer.getState().selectedReligion===id;
+      document.querySelector('#clear-focus').click();
+      const cleared=document.querySelector('#religion-select').value===''&&!document.querySelector('#stage .focus-muted')&&!document.querySelector('.religion-card.active');
+      card.click();const cardSelect=window.civmapperViewer.getState().selectedReligion===id;
+      card.click();const cardClear=window.civmapperViewer.getState().selectedReligion===null;
+      return {selected,highlighted,summary,details,expected,restored,holyColored,holySelect,cleared,cardSelect,cardClear,heatmap};
+    })()`);
+    assert.ok(
+      selection.selected && selection.highlighted && selection.heatmap,
+      "faith selection highlights territories and independent holy cities",
+    );
+    assert.ok(
+      selection.summary &&
+        selection.details.includes(String(selection.expected)),
+      "summary reports decoded follower counts",
+    );
+    assert.ok(
+      selection.restored,
+      "religion selection survives view and state restoration",
+    );
+    assert.ok(
+      selection.holyColored && selection.holySelect,
+      "holy diamond identifies and selects its own faith",
+    );
+    assert.ok(
+      selection.cleared && selection.cardSelect && selection.cardClear,
+      "clear and summary-card toggles restore overview",
+    );
+    passed(
+      "religion summaries, cross-empire selection, colored holy faith, state restore and clear",
+    );
+    if (available.includes("culture")) {
+      const combined = await evaluate(`(()=>{
+        const mode=document.querySelector('#mode');
+        mode.value='culture';mode.dispatchEvent(new Event('change'));
+        document.querySelector('#clear-focus').click();
+        const source=Array.from(document.querySelector('#perspective').options).find(o=>o.value!=='').value;
+        document.querySelector('#perspective').value=source;document.querySelector('#perspective').dispatchEvent(new Event('change'));
+        const before=Array.from(document.querySelectorAll('#stage path[data-surface="land"][data-owner]')).map(n=>n.getAttribute('fill'));
+        mode.value='religion';mode.dispatchEvent(new Event('change'));
+        const faith=Array.from(document.querySelector('#religion-select').options).find(o=>Number(o.value)>0).value;
+        document.querySelector('#religion-select').value=faith;document.querySelector('#religion-select').dispatchEvent(new Event('change'));
+        mode.value='culture';mode.dispatchEvent(new Event('change'));
+        const after=Array.from(document.querySelectorAll('#stage path[data-surface="land"][data-owner]')).map(n=>n.getAttribute('fill'));
+        const tourism=window.civmapperViewer.getState().perspective===Number(source)&&JSON.stringify(before)===JSON.stringify(after);
+        mode.value='religion';mode.dispatchEvent(new Event('change'));
+        const religion=window.civmapperViewer.getState().selectedReligion===faith;
+        document.querySelector('#clear-focus').click();mode.value='culture';mode.dispatchEvent(new Event('change'));document.querySelector('#clear-focus').click();
+        return {tourism,religion};
+      })()`);
+      assert.ok(
+        combined.tourism,
+        "religion selection preserves the tourism source and fills",
+      );
+      assert.ok(
+        combined.religion,
+        "tourism selection preserves the religion heatmap choice",
+      );
+      passed(
+        "tourism and religion retain independent selections when switching views",
+      );
+    }
+    await evaluate(
+      `document.querySelector('#mode').value=${JSON.stringify(initial)};document.querySelector('#mode').dispatchEvent(new Event('change'));document.querySelector('#clear-focus').click()`,
+    );
   }
   const box = await evaluate(
     'document.querySelector("#stage svg").getAttribute("viewBox")',

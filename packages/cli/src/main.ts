@@ -117,7 +117,7 @@ function renderOptions(c: Command) {
     .option("--style <name>", "atlas, parchment, minimalist or custom JSON")
     .option(
       "--mode <mode>",
-      "political, physical, army or culture",
+      "political, physical, army, culture or religion",
       "political",
     )
     .option(
@@ -128,7 +128,9 @@ function renderOptions(c: Command) {
     .option("--military-summary");
 }
 function checkOptions(o: any) {
-  if (!["political", "physical", "army", "culture"].includes(o.mode))
+  if (
+    !["political", "physical", "army", "culture", "religion"].includes(o.mode)
+  )
     throw new Error("unsupported render mode");
   if (
     o.mode === "culture" &&

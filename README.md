@@ -157,3 +157,28 @@ See [NOTICE](NOTICE) for format attribution and [third-party licenses](third_par
 ### Tourism influence
 
 Select **Tourism influence** to see each empire’s own territory shaded by total accumulated tourism exported on a shared scale. Click an empire for its outgoing influence and ranked totals; clear selection to return to the overview. The CLI supports `--mode culture` for the overview and optional `--perspective <player-id>` for SVG, PNG and HTML current-state output. Selected-source shading shows recorded tourism divided by target lifetime culture; unknown data is hatched. [Supported layouts, availability and normalized data](docs/cultural-view.md).
+
+Religion maps are available in the browser's View selector and in the CLI:
+
+```sh
+civmapper render-save game.Civ5Save --mode religion --output religion.svg
+civmapper render examples/synthetic-religion.json --mode religion --output religion.html
+```
+
+City circles show the current religious majority; a diamond marks holy status
+independently. Land colors follow the city's saved territory assignment. Gray
+means unknown. The view is enabled only when city religion records are known;
+unsupported save structures and replays retain the other available views.
+Supply matching ruleset/localization databases for mod names. Bundled religion
+labels use default ID mappings, and verified saved custom names take precedence.
+
+The religion view includes named color keys, a faith selector, and clickable
+follower/city summaries. Click a territory or religion to highlight that faith
+across empires; clear it to return to the overview. City circles show current
+majority while colored diamonds identify holy faiths independently. Counts
+cover decoded cities only; unknown records remain explicit.
+
+Selected faiths use a follower-share heatmap, including minority presence.
+Territories use their saved assigned city’s follower share; circles show city
+shares and diamonds retain the holy religion’s color. Standard faith colors are
+distinct, including Catholicism and Eastern Orthodoxy.

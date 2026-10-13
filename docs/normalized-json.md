@@ -252,3 +252,69 @@ Current culture is removed when preparing replay worlds from a base save. Replay
 events do not supply directed culture snapshots, and current totals are never
 reused historically. See [tourism influence decoding and validation](cultural-view.md)
 for supported saves, boundary checks, availability and examples.
+
+Religion data is optional in schema `0.1`. Older JSON remains valid. A city can
+supply `religionKnown: true`, an ordered `religions` array, and optional
+`majorityReligionId`. Each record has `religionId`, `followers`, `pressure`, and
+`holyCity`; `tradeRoutesApplyingPressure` is optional. IDs `-1` and `0` mean
+unaffiliated citizens and pantheon respectively. Unknown cities use
+`religionKnown: false` (or omit it), with records and majority absent or null.
+Known empty records mean no religious majority. The majority follows the game:
+the most followers, pressure to break ties, and at least half of all followers.
+Exact ties preserve saved record order. Holy status is independent of majority.
+
+A tile's `territoryCityKnown: true` and `territoryCityReference: {owner, localId}`
+identify the city that acquired its territory. A known null reference means no
+saved assignment; a false or omitted known flag means unknown. Religion land
+shading uses only this exact reference joined to a currently decoded city with
+the same owner. Missing, dangling, or inconsistent references remain neutral.
+Water retains its existing treatment. Shading represents assigned-city religion,
+not independently saved religious geography on every plot.
+
+The optional top-level `religions` array provides `id`, `key`, `nameKey`, `name`,
+`customName`, and `customNameKnown`. A verified nonempty saved custom name takes
+priority over database labels. Matching supplied databases can resolve mod
+religion names. Bundled labels record `metadataIdentity: "bundled-ruleset-id"`
+and `nameSource: "bundled-religion-localization"`; their numeric ID mapping is a
+presentation default and should be replaced with matching metadata for mods.
+Unresolved IDs display `Religion <ID>`. Missing optional religion tables do not
+prevent terrain or unit enrichment.
+
+Supported save profiles read the existing plot purchase-city owner/ID pair and
+validate it against current ownership and city identities. City religion records
+require a unique bounded structural chain anchored by the second serialized
+city name: strategy and paired hashes, production AI, citizens and paired hashes,
+religion, emphases, and nine matching espionage vectors. The uncounted project
+AI dimension must agree across decoded cities. Unsupported, ambiguous, or
+truncated structures leave religion unknown and produce diagnostics; they do
+not block other views. The separate global religion catalog is optional and
+requires an independently validated container and holy-city coordinates. Saved
+custom names remain unknown when that gate fails. Religion is unavailable on
+replays and maps without supplied city religion records.
+
+[`examples/synthetic-religion.json`](../examples/synthetic-religion.json) is an
+explicit synthetic demonstration, including a holy city with another current
+majority, pantheon, no majority, and unknown territory. It is not extracted save
+data.
+
+Serialization evidence comes from the [SDK city implementation](https://github.com/Gedemon/Civ5-DLL/blob/master/CvGameCoreDLL_Expansion2/CvCity.cpp),
+[SDK plot implementation](https://github.com/Gedemon/Civ5-DLL/blob/master/CvGameCoreDLL_Expansion2/CvPlot.cpp),
+and [Lekmod religion implementation](https://github.com/EnormousApplePie/Lekmod/blob/main/LEKMOD_DLL/CvGameCoreDLL_Expansion2/CvReligionClasses.cpp).
+The decoder is independently implemented and restricts support to validated layouts.
+
+The interactive religion view provides a faith selector, clickable territory and
+legend selection, and follower/city summaries across empires. Known followers
+and presence counts include only decoded city records, including city-states;
+unknown-city counts are shown separately. Unaffiliated followers are distinct
+from cities without a religious majority. Selecting a faith keeps its majority
+cities and holy cities visible even when a holy city has a different current
+majority. Circles show majority colors; offset diamonds use the holy religion’s
+color. Selection is preserved in viewer state and current-view SVG/PNG exports.
+
+Selecting a faith switches territory fills and city circles to a 0–100% follower
+share heatmap, including minority followers. Territory paths are grouped by
+exact purchase-city reference so cities with the same majority but different
+follower shares remain distinct. Zero followers is pale, unknown records or
+missing population are gray, and holy diamonds retain their own faith colors.
+The dynamic map legend, tooltips and exported SVG/PNG preserve these semantics.
+Clearing selection restores the majority overview.

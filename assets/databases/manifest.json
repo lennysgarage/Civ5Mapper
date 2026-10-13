@@ -4,12 +4,13 @@
   "files": {
     "ruleset": {
       "filename": "ruleset.db",
-      "bytes": 172032,
-      "sha256": "7266fa7f00f1023c48fb3d3462ad1530cfcc2989bde75f32408f3bd182b14bcb",
+      "bytes": 180224,
+      "sha256": "d9598ef851703bbcf468c1fd4756f23cbc821a1e4011ecdeca7aa3fc2652f66a",
       "sourceSha256": "12f9fe10637fd8d3ed0ed011431480e6a10d21c56c5ca1ee52ffc5e002c6d420",
       "rows": {
         "Civilizations": 115,
         "MinorCivilizations": 58,
+        "Religions": 14,
         "Terrains": 9,
         "Features": 25,
         "Defines": 5,
@@ -22,10 +23,10 @@
     "localization": {
       "filename": "localization.db",
       "bytes": 385024,
-      "sha256": "c5829b5756f4c7449c4cf1f356db19b840c524fd5dfcf56d5044456d6b85af6d",
+      "sha256": "57eee2173123a0fe0e1be4a5df689d8fed67ea42aebce3d16fa4cfa4b9e471e2",
       "sourceSha256": "3ca6b95eb41a8797e46c88a0c4a8cc656aa434b431a6e86675bdfda5d53117ef",
       "rows": {
-        "Language_en_US": 4447
+        "Language_en_US": 4461
       }
     }
   }

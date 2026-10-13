@@ -212,6 +212,8 @@ test("bundled browser databases resolve names, physical terrain and detailed arm
       terrain: false,
       military: false,
       culture: false,
+
+      religionNames: false,
     });
     assert.match(
       renderSvg(result, {}, { mode: "physical" }),

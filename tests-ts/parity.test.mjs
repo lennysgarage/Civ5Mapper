@@ -55,6 +55,17 @@ for (const [i, fixture] of fixtures.entries())
       return;
     }
     const actual = fn(...args);
+    // This legacy Python oracle predates optional territory assignments.
+    // Their decoding and failure behavior have dedicated religion tests.
+    if (
+      fixture.module === "extract" &&
+      fixture.function === "read_plots" &&
+      !fixture.error
+    )
+      for (const tile of actual[0]) {
+        tile.delete("territoryCityKnown");
+        tile.delete("territoryCityReference");
+      }
     assert.deepEqual(canonical(output(actual)), canonical(fixture.expected));
     assert.deepEqual(
       canonical(output(args)),

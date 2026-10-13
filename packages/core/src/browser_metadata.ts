@@ -15,6 +15,17 @@ export function metadataNeeds(world: World) {
     terrain: world.tiles.some((t) => !t.terrain),
     culture: Boolean(world.culture && !world.culture.thresholds),
     military: Boolean(world.units?.some((u) => u.classificationKnown !== true)),
+    religionNames: world.cities.some(
+      (c) =>
+        c.religionKnown === true &&
+        c.religions?.some(
+          (r: any) =>
+            r.religionId > 0 &&
+            !world.religions?.some(
+              (known) => known.id === r.religionId && known.name,
+            ),
+        ),
+    ),
   };
 }
 const downloads = new Map<string, Promise<Uint8Array>>();
@@ -48,7 +59,11 @@ export async function enrichBrowserWorld(
         world.civilizations.every(
           (c) => c.key && Number.isInteger(c.rulesetId),
         ))) &&
-    (needs.cityNames > 0 || needs.terrain || needs.military || needs.culture);
+    (needs.cityNames > 0 ||
+      needs.terrain ||
+      needs.military ||
+      needs.culture ||
+      needs.religionNames);
   if (!inputs.ruleset && !inputs.localization && !useDefault) return world;
   const url = (name: string) => new URL(name, inputs.assetBase).href;
   const files: Databases = {};
@@ -68,6 +83,7 @@ export async function enrichBrowserWorld(
     ]);
     await initRuleset(wasm);
     files.ruleset = ruleset;
+    files.religionMetadataTrusted = Boolean(inputs.ruleset);
     files.localization = localization;
     return enrichWorld(world, files);
   } catch (error) {

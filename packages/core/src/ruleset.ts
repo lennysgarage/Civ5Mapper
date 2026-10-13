@@ -9,6 +9,8 @@ export async function initRuleset(wasm: Uint8Array) {
 export interface Databases {
   ruleset?: Uint8Array;
   localization?: Uint8Array;
+  /** Bundled defaults cannot establish numeric mod religion identities. */
+  religionMetadataTrusted?: boolean;
 }
 const typeHash = (key: string) =>
   ((crc32(new TextEncoder().encode(key)) ^ 0xffffffff) >>> 0)
@@ -197,6 +199,58 @@ export function enrichWorld(input: World, files: Databases): World {
           );
         }
       }
+      const religionIds = new Set<number>(
+        world.cities
+          .filter((c) => c.religionKnown === true)
+          .flatMap((c) => c.religions!.map((r) => r.religionId))
+          .filter((id) => id > 0),
+      );
+      for (const r of world.religions ?? [])
+        if (r.id > 0) religionIds.add(r.id);
+      const hasReligions =
+        rows(
+          db,
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='Religions'",
+        ).length > 0;
+      if (religionIds.size && hasReligions) {
+        const catalog = new Map((world.religions ?? []).map((r) => [r.id, r]));
+        for (const id of religionIds) {
+          const row = rows(
+            db,
+            "SELECT Type,Description FROM Religions WHERE ID=?",
+            [id],
+          )[0];
+          if (
+            !row ||
+            (catalog.get(id)?.key && catalog.get(id)!.key !== row[0])
+          ) {
+            world.extraction.warnings.push(
+              `Religion ${id} has no matching ruleset metadata; its saved identity remains numeric.`,
+            );
+            continue;
+          }
+          const religion = catalog.get(id) ?? { id };
+          Object.assign(religion, {
+            key: row[0],
+            nameKey: row[1],
+            metadataIdentity:
+              files.religionMetadataTrusted === false
+                ? "bundled-ruleset-id"
+                : "supplied-ruleset-id",
+          });
+          catalog.set(id, religion);
+        }
+        world.religions = [...catalog.values()].sort((a, b) => a.id - b.id);
+        world.extraction.fields.religionNames = "partial";
+        if (files.religionMetadataTrusted === false)
+          world.extraction.warnings.push(
+            "Religion labels use bundled ruleset IDs; use matching metadata for modded labels. Saved custom names may remain unknown.",
+          );
+      } else if (religionIds.size) {
+        world.extraction.warnings.push(
+          "Ruleset has no Religions table; religion names remain numeric while other metadata is enriched.",
+        );
+      }
       world.extraction.fields.terrain = "extracted";
       world.extraction.fields.features = world.tiles.every(
         (t) => "feature" in t,
@@ -221,6 +275,7 @@ export function enrichWorld(input: World, files: Databases): World {
         ...world.civilizations,
         ...world.cities,
         ...(world.units ?? []),
+        ...(world.religions ?? []),
       ])
         if (object.nameKey) {
           const values = new Set(
@@ -232,13 +287,27 @@ export function enrichWorld(input: World, files: Databases): World {
           );
           if (values.size === 1) {
             object.name = [...values][0];
-            object.nameSource = "localization-database";
+            object.nameSource =
+              object.metadataIdentity === "bundled-ruleset-id"
+                ? "bundled-religion-localization"
+                : "localization-database";
           }
         }
     } finally {
       db.close();
     }
     evidence.localizationSha256 = sha256(files.localization).hexdigest();
+  }
+  if (world.religions) {
+    for (const r of world.religions)
+      if (r.customNameKnown === true && r.customName?.trim())
+        r.name = r.customName;
+    if (world.religions.length)
+      world.extraction.fields.religionNames = world.religions.every(
+        (r) => r.name && r.customNameKnown === true,
+      )
+        ? "extracted"
+        : "partial";
   }
   world.source.ruleset = evidence;
   return world;
