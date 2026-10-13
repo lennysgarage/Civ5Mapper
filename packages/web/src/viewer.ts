@@ -2,12 +2,22 @@ import {
   religionName,
   religiousMajority,
   cityReligionName,
+  religionSummary,
+  religionPresence,
+  religionHeatColor,
+  religionColor,
 } from "../../core/src/religion.js";
 ("use strict");
 export function mountViewer(root: Document = document) {
   const document: any = root;
   const data = JSON.parse(document.getElementById("world-data").textContent);
   const world = data.world;
+  const faithSelect = document.getElementById("religion-select");
+  let selectedReligion: string | null = null;
+  const faithSummary = religionSummary(world);
+  const faithCities = new Map<string, any>(
+    world.cities.map((c) => [`${c.owner}:${c.localId}`, c]),
+  );
   const stage = document.getElementById("stage");
   const modeSelect = document.getElementById("mode");
   const empireSelect = document.getElementById("empire");
@@ -150,6 +160,8 @@ export function mountViewer(root: Document = document) {
     if (String(owner) !== "" && !playerVisible(owner)) return;
     selected = String(owner);
     empireSelect.value = selected;
+    if (modeSelect.value === "religion" && selected !== "")
+      selectedReligion = null;
     const allies = world.civilizations
       .filter((c) => selected !== "" && String(knownAlly(c)?.id) === selected)
       .sort((a, b) => label(a.id).localeCompare(label(b.id)) || a.id - b.id);
@@ -205,6 +217,7 @@ export function mountViewer(root: Document = document) {
         ["View", modeSelect.selectedOptions[0].textContent],
       ]);
     }
+    applyReligionFocus();
     status(
       selected === ""
         ? "Empire highlight cleared"
@@ -250,7 +263,238 @@ export function mountViewer(root: Document = document) {
   );
   document
     .getElementById("clear-focus")
-    .addEventListener("click", () => focusEmpire(""));
+    .addEventListener("click", () =>
+      modeSelect.value === "religion" ? focusReligion(null) : focusEmpire(""),
+    );
+  function applyReligionFocus() {
+    const active = modeSelect.value === "religion";
+    document.getElementById("religion-controls").hidden = !active;
+    faithSelect.value = selectedReligion ?? "";
+    for (const card of document.querySelectorAll(".religion-card")) {
+      const chosen = card.dataset.religionId === selectedReligion;
+      card.classList.toggle("active", chosen);
+      card.setAttribute("aria-pressed", String(chosen));
+    }
+    if (!active) return;
+    const heat =
+      selectedReligion !== null &&
+      selectedReligion !== "unknown" &&
+      Number(selectedReligion) >= 0;
+    for (const node of svg.querySelectorAll("[data-religion-id]")) {
+      if (node.classList.contains("religion-territory")) {
+        if (!node.dataset.overviewTitle)
+          node.dataset.overviewTitle = node.querySelector("title").textContent;
+        node.setAttribute(
+          "fill",
+          heat
+            ? religionHeatColor(
+                Number(selectedReligion),
+                religionPresence(
+                  faithCities.get(node.dataset.religionCity),
+                  Number(selectedReligion),
+                ).share,
+              )
+            : religionColor(
+                node.dataset.religionId === "unknown"
+                  ? null
+                  : Number(node.dataset.religionId),
+              ),
+        );
+        if (heat) {
+          const city = faithCities.get(node.dataset.religionCity);
+          const presence = religionPresence(city, Number(selectedReligion));
+          node.querySelector("title").textContent =
+            `${city?.name ?? "Unassigned territory"} — ${religionLabel(Number(selectedReligion))}: ${presence.followers ?? "Unknown"} followers; ${presence.share === null ? "share unknown" : Math.round(presence.share * 100) + "% of city population"}. Shading uses saved city territory assignment.`;
+        } else
+          node.querySelector("title").textContent = node.dataset.overviewTitle;
+      }
+      if (selectedReligion === null) {
+        if (selected === "" || !node.hasAttribute("data-owner"))
+          node.classList.remove("focus-muted");
+      } else if (
+        heat &&
+        (node.classList.contains("religion-territory") ||
+          node.classList.contains("religion-marker"))
+      ) {
+        node.classList.remove("focus-muted");
+        if (node.classList.contains("religion-marker")) {
+          const city = cityById.get(node.dataset.cityId);
+          const presence = religionPresence(city, Number(selectedReligion));
+          const circle = node.querySelector("circle");
+          const title = node.querySelector("title");
+          if (!node.dataset.overviewTitle)
+            node.dataset.overviewTitle = title.textContent;
+          title.textContent = `${city?.name ?? "City"} — ${religionLabel(Number(selectedReligion))}: ${presence.followers ?? "Unknown"} followers; ${presence.share === null ? "share unknown" : Math.round(presence.share * 100) + "% of population"}. ${node.dataset.overviewTitle}`;
+          node.setAttribute("aria-label", title.textContent);
+          circle.setAttribute(
+            "fill",
+            religionHeatColor(Number(selectedReligion), presence.share),
+          );
+        }
+      } else {
+        const matches =
+          node.dataset.religionId === selectedReligion ||
+          (node.dataset.holyReligionIds ?? "")
+            .split(",")
+            .includes(selectedReligion);
+        node.classList.toggle("focus-muted", !matches);
+      }
+      if (!heat && node.classList.contains("religion-marker"))
+        node
+          .querySelector("circle")
+          .setAttribute(
+            "fill",
+            religionColor(
+              node.dataset.religionId === "unknown"
+                ? null
+                : Number(node.dataset.religionId),
+            ),
+          );
+    }
+    const legend = svg.querySelector(".religion-heatmap-legend");
+    if (legend) {
+      const x = Number(legend.dataset.x),
+        y = Number(legend.dataset.y);
+      legend.replaceChildren();
+      const text = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "text",
+      );
+      text.setAttribute("x", String(x));
+      text.setAttribute("y", String(y + 9));
+      text.setAttribute("font-size", "9");
+      text.textContent = heat
+        ? `${religionLabel(Number(selectedReligion))} — followers / city population; pale = 0%, gray = unknown. Circles show follower share; holy diamonds keep their faith colors.`
+        : "Overview: assigned-city majority colors. Select a religion for follower share.";
+      legend.append(text);
+      if (heat)
+        for (const [i, share] of [0, 0.25, 0.5, 0.75, 1].entries()) {
+          const rect = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "rect",
+          );
+          rect.setAttribute("x", String(x + i * 58));
+          rect.setAttribute("y", String(y + 12));
+          rect.setAttribute("width", "10");
+          rect.setAttribute("height", "6");
+          rect.setAttribute(
+            "fill",
+            religionHeatColor(Number(selectedReligion), share),
+          );
+          const label = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "text",
+          );
+          label.setAttribute("x", String(x + i * 58 + 13));
+          label.setAttribute("y", String(y + 18));
+          label.setAttribute("font-size", "8");
+          label.textContent = share * 100 + "%";
+          legend.append(rect, label);
+        }
+    }
+  }
+  function focusReligion(id: string | null, contextOwner?: string) {
+    if (
+      id !== null &&
+      !faithSummary.some((e) => String(e.id ?? "unknown") === id)
+    )
+      id = null;
+    selectedReligion = null;
+    focusEmpire("");
+    selectedReligion = id;
+    applyReligionFocus();
+    document.getElementById("religion-heatmap-hint").textContent =
+      id !== null && id !== "unknown" && Number(id) >= 0
+        ? "Heatmap: stronger color means a larger share of city population follows the selected religion. Minority followers are included. Territory shading uses saved city assignments; it is not independently saved plot religion."
+        : "Overview: colors show assigned-city majority religion. Select a faith to see its followers, including minorities, as a heatmap.";
+    if (id === null) {
+      showDetails(
+        "Religious overview",
+        [
+          ["Showing", "All known religions across civilization borders"],
+          [
+            "City religion known",
+            `${world.cities.filter((c) => c.religionKnown === true).length}/${world.cities.length}`,
+          ],
+        ],
+        [
+          "Territory color = assigned city’s majority",
+          "Circle = current majority; diamond = holy religion",
+          "Follower totals count only cities with decoded religion records",
+        ],
+      );
+    } else {
+      const entry = faithSummary.find((e) => String(e.id ?? "unknown") === id);
+      if (entry)
+        showDetails(entry.name, [
+          ...(contextOwner !== undefined && civById.has(String(contextOwner))
+            ? [
+                ["Territory owner", label(contextOwner)],
+                ...allianceRows(contextOwner),
+              ]
+            : []),
+          [
+            id === "unknown"
+              ? "Cities with unknown religion"
+              : id === "-1"
+                ? "Cities without a majority"
+                : "Majority cities",
+            entry.majorityCities,
+          ],
+          [
+            id === "-1" ? "Known unaffiliated followers" : "Known followers",
+            entry.followers ?? "Unknown",
+          ],
+          [
+            "Present in cities",
+            id === "unknown" ? "Unknown" : entry.presentCities,
+          ],
+          [
+            "Holy cities",
+            entry.holyCities.length
+              ? entry.holyCities.map((c) => c.name).join(", ")
+              : "None recorded",
+          ],
+        ]);
+    }
+    status(
+      id === null
+        ? "Showing all religions"
+        : `Religion highlighted: ${faithSummary.find((e) => String(e.id ?? "unknown") === id)?.name}`,
+    );
+  }
+  faithSelect.addEventListener("change", () =>
+    focusReligion(faithSelect.value || null),
+  );
+  document.getElementById("religion-coverage").textContent =
+    `City religion known for ${world.cities.filter((c) => c.religionKnown === true).length}/${world.cities.length} cities. Counts cover all decoded cities, including city-states.`;
+  for (const entry of faithSummary) {
+    const id = String(entry.id ?? "unknown");
+    const option = element("option", entry.name);
+    option.value = id;
+    faithSelect.append(option);
+    const card = element("button");
+    card.type = "button";
+    card.className = "religion-card";
+    card.dataset.religionId = id;
+    card.setAttribute("aria-pressed", "false");
+    const swatch = element("span");
+    swatch.style.cssText = `display:inline-block;width:12px;height:12px;background:${entry.color};margin-right:6px;border:1px solid #292a28`;
+    const title = element("strong", entry.name);
+    card.append(swatch, title);
+    card.append(
+      element(
+        "p",
+        entry.id === null
+          ? `${entry.majorityCities} cities with unknown religion`
+          : `${entry.followers} known ${entry.id === -1 ? "unaffiliated " : ""}followers · ${entry.majorityCities} ${entry.id === -1 ? "cities without a majority" : "majority cities"} · ${entry.holyCities.length} holy cities`,
+      ),
+    );
+    card.addEventListener("click", () =>
+      focusReligion(selectedReligion === id ? null : id),
+    );
+    document.getElementById("religion-summary").append(card);
+  }
   const entries =
     data.summary ||
     world.civilizations
@@ -356,7 +600,7 @@ export function mountViewer(root: Document = document) {
     updateView();
     modeSelect.value = mode;
     for (const node of svg.querySelectorAll(
-      ".army-marker,.capital-marker,.city-marker",
+      ".army-marker,.capital-marker,.city-marker,.holy-city-marker,.religion-legend",
     )) {
       node.setAttribute("tabindex", "0");
       node.setAttribute("role", "button");
@@ -365,6 +609,7 @@ export function mountViewer(root: Document = document) {
     applyLayers();
     applyPlayerFilters();
     focusEmpire(selected);
+    if (mode === "religion" && selected === "") focusReligion(selectedReligion);
     status(`${modeSelect.selectedOptions[0].textContent} view`);
   }
   modeSelect.addEventListener("change", () => setMode(modeSelect.value));
@@ -520,7 +765,13 @@ export function mountViewer(root: Document = document) {
   stage.addEventListener("pointerup", endDrag);
   stage.addEventListener("pointercancel", endDrag);
   function showCity(city, navigate = false) {
-    focusEmpire(city.owner);
+    if (modeSelect.value === "religion")
+      focusReligion(
+        city.religionKnown === true
+          ? String(religiousMajority(city.religions))
+          : "unknown",
+      );
+    else focusEmpire(city.owner);
     if (navigate) {
       data.layers.cities = true;
       checks.cities.checked = true;
@@ -576,13 +827,25 @@ export function mountViewer(root: Document = document) {
       city.religionKnown === true
         ? city.religions.map(
             (r) =>
-              `${r.religionId === -1 ? "Unaffiliated" : religionLabel(r.religionId)}: ${r.followers} followers; saved pressure ${r.pressure}`,
+              `${r.religionId === -1 ? "Unaffiliated" : religionLabel(r.religionId)}: ${r.followers} followers${city.population > 0 ? ` (${Math.round((r.followers / city.population) * 100)}%)` : ""}${r.holyCity ? " · holy city" : ""}`,
           )
         : [],
     );
     status(`Selected ${city.name}`);
   }
   function activate(target) {
+    if (modeSelect.value === "religion") {
+      const holy = target.closest(".holy-city-marker");
+      if (holy) {
+        focusReligion(holy.dataset.holyReligionId);
+        return;
+      }
+      const legend = target.closest(".religion-legend[data-religion-id]");
+      if (legend) {
+        focusReligion(legend.dataset.religionId);
+        return;
+      }
+    }
     const marker = target.closest(".army-marker");
     if (marker) {
       const { owner, x, y } = marker.dataset;
@@ -607,6 +870,18 @@ export function mountViewer(root: Document = document) {
     const cityNode = target.closest("[data-city-id]");
     if (cityNode) {
       showCity(cityById.get(cityNode.dataset.cityId));
+      return;
+    }
+    if (modeSelect.value === "religion") {
+      const territory = target.closest(".religion-territory[data-religion-id]");
+      if (territory)
+        focusReligion(territory.dataset.religionId, territory.dataset.owner);
+      else {
+        const owner = target.closest("[data-owner]");
+        if (owner && civById.has(owner.dataset.owner))
+          focusEmpire(owner.dataset.owner);
+        else focusReligion(null);
+      }
       return;
     }
     const ownerNode = target.closest("[data-owner]");
@@ -641,7 +916,8 @@ export function mountViewer(root: Document = document) {
       event.preventDefault();
       fit();
     }
-    if (event.key === "Escape") focusEmpire("");
+    if (event.key === "Escape")
+      modeSelect.value === "religion" ? focusReligion(null) : focusEmpire("");
   });
   const search = document.getElementById("search"),
     results = document.getElementById("search-results");
@@ -718,6 +994,7 @@ export function mountViewer(root: Document = document) {
       layers: { ...data.layers },
       playerGroups: { ...playerGroups },
       selected,
+      selectedReligion,
       view: { ...view },
     }),
     restoreState: (state) => {
@@ -735,6 +1012,8 @@ export function mountViewer(root: Document = document) {
         updateView();
       }
       focusEmpire(state.selected ?? "");
+      if (modeSelect.value === "religion" && !state.selected)
+        focusReligion(state.selectedReligion ?? null);
     },
   };
 }

@@ -467,6 +467,63 @@ try {
     assert.match(svg, /religion-marker/);
     if (religion.holy) assert.match(svg, /holy-city-marker/);
     passed("religion layer toggles and SVG download");
+    const selection = await evaluate(`(async()=>{
+      document.querySelector('#clear-focus').click();
+      const w=JSON.parse(document.querySelector('#world-data').textContent).world;
+      const path=Array.from(document.querySelectorAll('#stage .religion-territory')).find(p=>Number(p.dataset.religionId)>0);
+      if(!path)throw new Error('No known faith territory to select');
+      const id=path.dataset.religionId;
+      path.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+      const state=window.civmapperViewer.getState();
+      const expected=w.cities.filter(c=>c.religionKnown===true).reduce((sum,c)=>sum+(c.religions.find(r=>String(r.religionId)===id)?.followers??0),0);
+      const selected=document.querySelector('#religion-select').value===id&&state.selectedReligion===id&&state.selected==='';
+      const paths=Array.from(document.querySelectorAll('#stage .religion-territory'));
+      const highlighted=paths.every(n=>!n.classList.contains('focus-muted'));
+      const heatmap=paths.every(n=>{
+        const c=w.cities.find(c=>c.owner+':'+c.localId===n.dataset.religionCity);
+        const followers=c?.religionKnown===true?(c.religions.find(r=>String(r.religionId)===id)?.followers??0):null;
+        return n.querySelector('title').textContent.includes(''+(followers??'Unknown')+' followers');
+      })&&document.querySelector('.religion-heatmap-legend').textContent.includes('followers / city population');
+      const details=document.querySelector('#details').textContent;
+      const card=document.querySelector('.religion-card[data-religion-id="'+id+'"]');
+      const summary=card.textContent.includes(String(expected))&&card.classList.contains('active');
+      document.querySelector('#mode').value='political';document.querySelector('#mode').dispatchEvent(new Event('change'));
+      window.civmapperViewer.restoreState(state);
+      const restored=window.civmapperViewer.getState().selectedReligion===id;
+      const holy=Array.from(document.querySelectorAll('#stage .holy-city-marker')).find(n=>n.dataset.holyReligionId===id);
+      const holyColored=!holy||holy.getAttribute('fill')!== '#fff8e8';
+      if(holy)holy.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+      const holySelect=!holy||window.civmapperViewer.getState().selectedReligion===id;
+      document.querySelector('#clear-focus').click();
+      const cleared=document.querySelector('#religion-select').value===''&&!document.querySelector('#stage .focus-muted')&&!document.querySelector('.religion-card.active');
+      card.click();const cardSelect=window.civmapperViewer.getState().selectedReligion===id;
+      card.click();const cardClear=window.civmapperViewer.getState().selectedReligion===null;
+      return {selected,highlighted,summary,details,expected,restored,holyColored,holySelect,cleared,cardSelect,cardClear,heatmap};
+    })()`);
+    assert.ok(
+      selection.selected && selection.highlighted && selection.heatmap,
+      "faith selection highlights territories and independent holy cities",
+    );
+    assert.ok(
+      selection.summary &&
+        selection.details.includes(String(selection.expected)),
+      "summary reports decoded follower counts",
+    );
+    assert.ok(
+      selection.restored,
+      "religion selection survives view and state restoration",
+    );
+    assert.ok(
+      selection.holyColored && selection.holySelect,
+      "holy diamond identifies and selects its own faith",
+    );
+    assert.ok(
+      selection.cleared && selection.cardSelect && selection.cardClear,
+      "clear and summary-card toggles restore overview",
+    );
+    passed(
+      "religion summaries, cross-empire selection, colored holy faith, state restore and clear",
+    );
     await evaluate(
       `document.querySelector('#mode').value=${JSON.stringify(initial)};document.querySelector('#mode').dispatchEvent(new Event('change'));document.querySelector('#clear-focus').click()`,
     );

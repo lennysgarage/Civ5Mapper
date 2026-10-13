@@ -167,3 +167,14 @@ means unknown. The view is enabled only when city religion records are known;
 unsupported save structures and replays retain the other available views.
 Supply matching ruleset/localization databases for mod names. Bundled religion
 labels use default ID mappings, and verified saved custom names take precedence.
+
+The religion view includes named color keys, a faith selector, and clickable
+follower/city summaries. Click a territory or religion to highlight that faith
+across empires; clear it to return to the overview. City circles show current
+majority while colored diamonds identify holy faiths independently. Counts
+cover decoded cities only; unknown records remain explicit.
+
+Selected faiths use a follower-share heatmap, including minority presence.
+Territories use their saved assigned city’s follower share; circles show city
+shares and diamonds retain the holy religion’s color. Standard faith colors are
+distinct, including Catholicism and Eastern Orthodoxy.

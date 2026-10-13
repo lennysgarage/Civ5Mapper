@@ -1998,7 +1998,9 @@ export function render_svg(
     mode === "religion"
       ? layoutReligionLegend(religionWorld, vw - 2 * margin)
       : null;
-  religionHeaderHeight = religionLegendLayout?.height ?? 0;
+  religionHeaderHeight = religionLegendLayout
+    ? religionLegendLayout.height + 20
+    : 0;
   vh = compat.add(
     compat.add(
       compat.div(compat.mul(compat.add(compat.mul(3, height), 1), radius), 2),
@@ -2369,7 +2371,7 @@ export function render_svg(
   }
   if (mode === "religion") {
     legend = [
-      "Assigned-city religion on land; circle: city majority; diamond: holy city (independent of majority). Gray: unknown; cream: no majority; ochre: pantheon.",
+      "Overview: land/circles show city majority, not empire religion. Selected faith: follower-share heatmap. Diamond: holy religion. Gray: unknown; cream: no majority.",
     ];
   }
   if (compat.truth(legend)) {
@@ -2615,9 +2617,13 @@ export function render_svg(
         legendY = 57 + entry.y;
       compat.append(
         out,
-        `<g class="religion-legend"><title>${compat.escape(entry.name)}</title><rect x="${legendX}" y="${legendY}" width="9" height="9" fill="${entry.color}" stroke="#292a28"/><text x="${legendX + 13}" y="${legendY + 8}" font-size="9">${compat.escape(entry.text)}</text></g>`,
+        `<g class="religion-legend" data-religion-id="${entry.id ?? "unknown"}"><title>${compat.escape(entry.name)}</title><rect x="${legendX}" y="${legendY}" width="9" height="9" fill="${entry.color}" stroke="#292a28"/><text x="${legendX + 13}" y="${legendY + 8}" font-size="9">${compat.escape(entry.text)}</text></g>`,
       );
     }
+    compat.append(
+      out,
+      `<g class="religion-heatmap-legend" data-x="${margin}" data-y="${57 + religionLegendLayout!.height}"><text x="${margin}" y="${57 + religionLegendLayout!.height + 9}" font-size="9">Overview: territory colors show assigned-city majority. Select a religion to see its follower share.</text></g>`,
+    );
     compat.append(
       out,
       religionTerritories(

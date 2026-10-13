@@ -14,6 +14,9 @@ export function metadataNeeds(world: World) {
     ).length,
     terrain: world.tiles.some((t) => !t.terrain),
     military: Boolean(world.units?.some((u) => u.classificationKnown !== true)),
+    religionNames: world.cities.some((c) => c.religionKnown === true &&
+      c.religions?.some((r: any) => r.religionId > 0 &&
+        !world.religions?.some((known) => known.id === r.religionId && known.name))),
   };
 }
 const downloads = new Map<string, Promise<Uint8Array>>();
@@ -43,7 +46,7 @@ export async function enrichBrowserWorld(
   const useDefault =
     inputs.bundledMetadata !== false &&
     world.source.kind === "save" &&
-    (needs.cityNames > 0 || needs.terrain || needs.military);
+    (needs.cityNames > 0 || needs.terrain || needs.military || needs.religionNames);
   if (!inputs.ruleset && !inputs.localization && !useDefault) return world;
   const url = (name: string) => new URL(name, inputs.assetBase).href;
   const files: Databases = {};

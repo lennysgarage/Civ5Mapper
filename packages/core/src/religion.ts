@@ -144,24 +144,67 @@ export function religionAvailability(world: World): string | null {
     return "Religion view requires validated city religion records. Save city religion serialization has not been validated for this layout; normalized JSON can supply known records.";
   return null;
 }
-// Fixed ID hashing makes colors stable when another religion disappears.
+// Stable distinct colors for the standard religion IDs, including Catholicism and Orthodoxy.
 export function religionColor(id: number | null) {
   if (id === null) return "#c7c3b9";
   if (id === -1) return "#eee7d5";
   if (id === 0) return "#b7aa78";
   const palette = [
-    "#cf7358",
-    "#688fbc",
-    "#819c66",
-    "#b481b4",
-    "#d3a34e",
-    "#56a69e",
-    "#b8886a",
-    "#8991c3",
-    "#c27994",
-    "#8ba353",
+    "#0072b2",
+    "#d55e00",
+    "#009e73",
+    "#cc79a7",
+    "#e69f00",
+    "#56b4e9",
+    "#7b3294",
+    "#a63603",
+    "#e7298a",
+    "#6666cc",
+    "#66a61e",
+    "#1b9e77",
+    "#e6ab02",
+    "#a6761d",
+    "#00a6a6",
+    "#b2182b",
+    "#882255",
+    "#332288",
+    "#44aa99",
+    "#aa4499",
   ];
-  return palette[(Math.imul(id, 7) >>> 0) % palette.length];
+  return palette[(id - 1) % palette.length];
+}
+export function religionPresence(city: any, id: number) {
+  if (!city || city.religionKnown !== true)
+    return { followers: null, share: null };
+  const followers =
+    city.religions.find((r: CityReligion) => r.religionId === id)?.followers ??
+    0;
+  const share =
+    Number.isSafeInteger(city.population) && city.population >= 0
+      ? city.population > 0
+        ? followers / city.population
+        : 0
+      : null;
+  return { followers, share };
+}
+export function religionHeatColor(id: number, share: number | null) {
+  if (share === null) return religionColor(null);
+  if (share <= 0) return "#f4efe3";
+  const hex = religionColor(id),
+    amount = Math.max(0, Math.min(1, share));
+  const start = [244, 239, 227];
+  return (
+    "#" +
+    start
+      .map((n, i) =>
+        Math.round(
+          n + (parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16) - n) * amount,
+        )
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")
+  );
 }
 export function territoryReligion(world: World, tile: any): number | null {
   if (
@@ -193,14 +236,20 @@ export function religionTerritories(
 ) {
   const groups = new Map<
     string,
-    { owner: any; religion: number | null; tiles: any[] }
+    { owner: any; religion: number | null; cityKey: string; tiles: any[] }
   >();
   for (const tile of world.tiles) {
     if (tile.landWater !== "land") continue;
-    const religion = territoryReligion(world, tile),
-      key = `${tile.owner}:${religion}`;
+    const religion = territoryReligion(world, tile);
+    const ref =
+      tile.territoryCityKnown === true ? tile.territoryCityReference : null;
+    const cityKey =
+      ref && ref.owner === tile.owner
+        ? `${ref.owner}:${ref.localId}`
+        : "unknown";
+    const key = `${tile.owner}:${religion}:${cityKey}`;
     if (!groups.has(key))
-      groups.set(key, { owner: tile.owner, religion, tiles: [] });
+      groups.set(key, { owner: tile.owner, religion, cityKey, tiles: [] });
     groups.get(key)!.tiles.push(tile);
   }
   return [...groups.entries()]
@@ -219,7 +268,7 @@ export function religionTerritories(
         g.religion === null
           ? "Assigned-city religion unknown"
           : `Assigned-city religion: ${religionName(world, g.religion)}`;
-      return `<path class="religion-territory" data-owner="${g.owner ?? "unowned"}" data-surface="land" data-religion-id="${g.religion ?? "unknown"}" d="${path}" fill="${religionColor(g.religion)}" fill-rule="evenodd"><title>${escape(`${ownerName} — ${religionCaption}`)}</title></path>`;
+      return `<path class="religion-territory" data-owner="${g.owner ?? "unowned"}" data-surface="land" data-religion-city="${g.cityKey}" data-religion-id="${g.religion ?? "unknown"}" d="${path}" fill="${religionColor(g.religion)}" fill-rule="evenodd"><title>${escape(`${ownerName} — ${religionCaption}`)}</title></path>`;
     })
     .join("");
 }
@@ -237,7 +286,15 @@ export function religionMarker(
       ? city.religions.filter((r: CityReligion) => r.holyCity)
       : [];
   const title = `${city.name} — ${cityReligionName(world, city)}${holy.length ? `; holy city: ${holy.map((r: CityReligion) => religionName(world, r.religionId)).join(", ")}` : ""}`;
-  return `<g class="city-marker religion-marker"${attributes} data-religion-id="${id ?? "unknown"}"><title>${escape(title)}</title><circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="6" fill="${religionColor(id)}" stroke="#292a28" stroke-width="1.5"/>${holy.length ? `<path class="holy-city-marker" d="M ${x - 4} ${y} L ${x} ${y - 4} L ${x + 4} ${y} L ${x} ${y + 4} Z" fill="#fff8e8" stroke="#292a28"/>` : ""}</g>`;
+  const holyMarkers = holy
+    .map((r: CityReligion, i: number) => {
+      const hx = x + 6 + i * 10,
+        hy = y - 6;
+      const shape = `M ${hx - 4} ${hy} L ${hx} ${hy - 4} L ${hx + 4} ${hy} L ${hx} ${hy + 4} Z`;
+      return `<path class="holy-city-marker" data-holy-religion-id="${r.religionId}" d="${shape}" fill="${religionColor(r.religionId)}" stroke="#fff8e8" stroke-width="2"><title>Holy city: ${escape(religionName(world, r.religionId))}</title></path>`;
+    })
+    .join("");
+  return `<g class="city-marker religion-marker"${attributes} data-religion-id="${id ?? "unknown"}" data-holy-religion-ids="${holy.map((r: CityReligion) => r.religionId).join(",")}"><title>${escape(title)}</title><circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="6" fill="${religionColor(id)}" stroke="#292a28" stroke-width="1.5"/>${holyMarkers}</g>`;
 }
 
 export function religionLegend(world: World) {
@@ -279,4 +336,48 @@ export function layoutReligionLegend(world: World, available: number) {
     return item;
   });
   return { items, height: (row + 1) * 14 };
+}
+
+/** All counts cover decoded cities, including city-states; missing records remain unknown. */
+export function religionSummary(world: World) {
+  return religionLegend(world)
+    .map((entry) => {
+      const known = world.cities.filter((c) => c.religionKnown === true);
+      const records = known.map((city) => ({
+        city,
+        record: city.religions!.find((r) => r.religionId === entry.id),
+      }));
+      return {
+        ...entry,
+        followers:
+          entry.id === null
+            ? null
+            : records.reduce(
+                (sum, { record }) => sum + (record?.followers ?? 0),
+                0,
+              ),
+        majorityCities:
+          entry.id === null
+            ? world.cities.length - known.length
+            : known.filter((c) => religiousMajority(c.religions!) === entry.id)
+                .length,
+        presentCities: records.filter(
+          ({ record }) => record && record.followers > 0,
+        ).length,
+        holyCities: records
+          .filter(({ record }) => record?.holyCity)
+          .map(({ city }) => ({
+            id: city.id,
+            name: city.name,
+            owner: city.owner,
+            x: city.x,
+            y: city.y,
+          })),
+      };
+    })
+    .sort(
+      (a, b) =>
+        (b.followers ?? -1) - (a.followers ?? -1) ||
+        (a.id ?? -2) - (b.id ?? -2),
+    );
 }

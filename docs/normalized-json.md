@@ -255,3 +255,20 @@ Serialization evidence comes from the [SDK city implementation](https://github.c
 [SDK plot implementation](https://github.com/Gedemon/Civ5-DLL/blob/master/CvGameCoreDLL_Expansion2/CvPlot.cpp),
 and [Lekmod religion implementation](https://github.com/EnormousApplePie/Lekmod/blob/main/LEKMOD_DLL/CvGameCoreDLL_Expansion2/CvReligionClasses.cpp).
 The decoder is independently implemented and restricts support to validated layouts.
+
+The interactive religion view provides a faith selector, clickable territory and
+legend selection, and follower/city summaries across empires. Known followers
+and presence counts include only decoded city records, including city-states;
+unknown-city counts are shown separately. Unaffiliated followers are distinct
+from cities without a religious majority. Selecting a faith keeps its majority
+cities and holy cities visible even when a holy city has a different current
+majority. Circles show majority colors; offset diamonds use the holy religion’s
+color. Selection is preserved in viewer state and current-view SVG/PNG exports.
+
+Selecting a faith switches territory fills and city circles to a 0–100% follower
+share heatmap, including minority followers. Territory paths are grouped by
+exact purchase-city reference so cities with the same majority but different
+follower shares remain distinct. Zero followers is pale, unknown records or
+missing population are gray, and holy diamonds retain their own faith colors.
+The dynamic map legend, tooltips and exported SVG/PNG preserve these semantics.
+Clearing selection restores the majority overview.

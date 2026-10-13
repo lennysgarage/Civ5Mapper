@@ -16,6 +16,7 @@ const digest = (data) => createHash("sha256").update(data).digest("hex");
 const tables = {
   Civilizations: ["ID", "Type", "Description"],
   MinorCivilizations: ["Type", "Description"],
+  Religions: ["ID", "Type", "Description"],
   Terrains: ["ID", "Type", "Water"],
   Features: ["Type"],
   Routes: ["ID", "Type"],
@@ -38,6 +39,7 @@ try {
   for (const [table, column] of [
     ["Civilizations", "Description"],
     ["MinorCivilizations", "Description"],
+    ["Religions", "Description"],
     ["Units", "Description"],
     ["Civilization_CityNames", "CityName"],
   ]) {

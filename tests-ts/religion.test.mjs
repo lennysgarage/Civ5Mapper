@@ -9,6 +9,11 @@ import {
   religiousMajority,
   territoryReligion,
   religionName,
+  religionSummary,
+  religionMarker,
+  religionColor,
+  religionPresence,
+  religionHeatColor,
 } from "../dist/core/src/religion.js";
 import {
   readCityReligionBlock,
@@ -196,7 +201,10 @@ test("normalized religion mode keeps holy status independent, escapes names, and
   assert.match(svg, /holy-city-marker/);
   assert.match(svg, /Greenhaven.*Tidekeepers; holy city: Sunrise Fellowship/);
   assert.match(svg, /religion-legend/);
-  assert.match(svg, /data-owner="0" data-surface="land" data-religion-id="-1"/);
+  assert.match(
+    svg,
+    /data-owner="0" data-surface="land"[^>]*data-religion-id="-1"/,
+  );
   assert.deepEqual(w, original);
   w.religions[0].customName = "<saved & name>";
   w.religions[0].name = "Wrong DB name";
@@ -276,6 +284,31 @@ test("optional religion metadata missing from an older DB preserves terrain enri
   assert.equal(result.tiles[0].terrain, "TERRAIN_GRASS");
   assert.ok(
     result.extraction.warnings.some((s) => s.includes("no Religions table")),
+  );
+});
+
+test("bundled metadata supplies readable religion labels with provenance", async () => {
+  await initRuleset(fs.readFileSync("assets/wasm/sql-wasm.wasm"));
+  const w = fixture();
+  const civilizations = w.civilizations;
+  const tiles = w.tiles;
+  w.tiles = [];
+  w.civilizations = [];
+  delete w.religions;
+  const result = enrichWorld(w, {
+    ruleset: fs.readFileSync("assets/databases/ruleset.db"),
+    localization: fs.readFileSync("assets/databases/localization.db"),
+    religionMetadataTrusted: false,
+  });
+  const religion = result.religions.find((r) => r.id === 1);
+  assert.ok(religion.name && !religion.name.startsWith("TXT_KEY_"));
+  assert.equal(religion.metadataIdentity, "bundled-ruleset-id");
+  assert.equal(religionName(result, 1), religion.name);
+  result.civilizations = civilizations;
+  result.tiles = tiles;
+  assert.match(
+    renderSvg(result, null, { mode: "religion" }),
+    new RegExp(religion.name),
   );
 });
 
@@ -416,4 +449,58 @@ test("replays strip current religion and territory assignments from snapshot and
       );
     }
   }
+});
+
+test("religion summary separates majority, presence, unaffiliated followers and independent holy status", () => {
+  const w = fixture();
+  const summary = religionSummary(w);
+  const first = summary.find((e) => e.id === 1);
+  assert.equal(first.followers, 15);
+  assert.equal(first.majorityCities, 1);
+  assert.equal(first.presentCities, 3);
+  assert.deepEqual(
+    first.holyCities.map((c) => c.name),
+    ["Greenhaven"],
+  );
+  assert.equal(summary.find((e) => e.id === -1).followers, 8);
+  assert.equal(summary.find((e) => e.id === -1).majorityCities, 1);
+  const city = w.cities.find((c) => c.name === "Greenhaven");
+  const marker = religionMarker(w, city, 20, 20, "");
+  assert.match(marker, /data-religion-id="2"/);
+  assert.match(marker, /data-holy-religion-ids="1"/);
+  assert.ok(marker.includes(`data-holy-religion-id="1"`));
+  assert.ok(marker.includes(`fill="${religionColor(1)}"`));
+  city.religionKnown = false;
+  delete city.religions;
+  delete city.majorityReligionId;
+  const partial = religionSummary(w);
+  assert.equal(partial.find((e) => e.id === null).majorityCities, 1);
+  assert.equal(partial.find((e) => e.id === null).followers, null);
+  assert.equal(partial.find((e) => e.id === 1).followers, 12);
+});
+
+test("standard faith colors are unique and Catholicism differs strongly from Orthodoxy", () => {
+  assert.equal(
+    new Set(Array.from({ length: 13 }, (_, i) => religionColor(i + 1))).size,
+    13,
+  );
+  const rgb = (color) =>
+    [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16));
+  const a = rgb(religionColor(2)),
+    b = rgb(religionColor(12));
+  assert.ok(Math.hypot(...a.map((n, i) => n - b[i])) > 150);
+});
+test("heatmap shows minority followers and preserves unknown versus known zero", () => {
+  const w = fixture(),
+    city = w.cities.find((c) => c.name === "Greenhaven");
+  assert.equal(city.majorityReligionId, 2);
+  assert.deepEqual(religionPresence(city, 1), { followers: 3, share: 0.3 });
+  assert.notEqual(religionHeatColor(1, 0.3), religionHeatColor(1, 0));
+  assert.equal(religionHeatColor(1, 1), religionColor(1));
+  assert.equal(religionHeatColor(1, null), religionColor(null));
+  assert.deepEqual(religionPresence(city, 13), { followers: 0, share: 0 });
+  assert.deepEqual(religionPresence(null, 1), { followers: null, share: null });
+  const svg = renderSvg(w, null, { mode: "religion", interactive: true });
+  assert.match(svg, /data-religion-city="1:1"/);
+  assert.match(svg, /religion-heatmap-legend/);
 });
