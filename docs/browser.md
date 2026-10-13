@@ -84,8 +84,12 @@ The viewer supports political/physical/army modes according to available data,
 layer/group toggles, highlights, city searches and regional exports. PNG/SVG
 exports reflect the current viewer. Click empty or unclaimed map areas, use
 Clear highlight, or press Escape to restore all empires; dragging preserves the
-selection. The browser no longer offers an Offline HTML download. World JSON
-exports the current normalized world. Replay JSON retains the source event log;
+selection. The browser no longer offers an Offline HTML download.
+Selecting an empire also highlights its known city-state allies and lists their
+names in Map details. Clicking a city-state territory or city shows its allied
+empire and the alliance start turn when recorded. Unknown alliances are labeled
+Unknown; they are never inferred from colors or proximity.
+World JSON exports the current normalized world. Replay JSON retains the source event log;
 GIF uses the chosen replay mode, style, captions and frame settings.
 
 Replay tools accept save/replay/JSON inputs. Standalone replay wrapping must come

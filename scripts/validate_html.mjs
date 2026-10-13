@@ -269,6 +269,60 @@ try {
     'Array.from(document.querySelector("#mode").options).filter(o=>!o.disabled).map(o=>o.value)',
   );
   const initial = await evaluate('document.querySelector("#mode").value');
+  const alliances = await evaluate(`(()=>{
+    const {world}=JSON.parse(document.querySelector('#world-data').textContent);
+    return world.civilizations.filter(c=>c.kind==='city-state' && c.allianceKnown===true && c.ally!==null);
+  })()`);
+  for (const cityState of alliances) {
+    for (const mode of available) {
+      const result = await evaluate(`(()=>{
+        const data=JSON.parse(document.querySelector('#world-data').textContent);
+        const minor=${JSON.stringify(cityState)};
+        const mode=document.querySelector('#mode');mode.value=${JSON.stringify(mode)};mode.dispatchEvent(new Event('change'));
+        const select=document.querySelector('#empire');select.value=String(minor.ally);select.dispatchEvent(new Event('change'));
+        const nodes=Array.from(document.querySelectorAll('#stage [data-owner]'));
+        const allies=new Set(data.world.civilizations.filter(c=>c.kind==='city-state' && c.allianceKnown===true && c.ally===minor.ally).map(c=>String(c.id)));
+        allies.add(String(minor.ally));
+        return {matches:nodes.every(n=>n.classList.contains('focus-muted')===!allies.has(n.dataset.owner)),
+          listed:document.querySelector('#details').textContent.includes(data.labels[String(minor.id)])};
+      })()`);
+      assert.equal(
+        result.matches,
+        true,
+        "only empire and recorded allies stay highlighted",
+      );
+      assert.equal(result.listed, true, "details list the allied city-state");
+    }
+    const details = await evaluate(`(()=>{
+      const data=JSON.parse(document.querySelector('#world-data').textContent);
+      const minor=${JSON.stringify(cityState)};
+      const node=document.querySelector('#stage [data-owner="'+minor.id+'"]');
+      if(!node)return null;
+      node.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+      const territory=document.querySelector('#details').textContent;
+      const city=document.querySelector('#stage [data-owner="'+minor.id+'"][data-city-id]');
+      city?.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+      return {territory,city:city?document.querySelector('#details').textContent:null,ally:data.labels[String(minor.ally)]};
+    })()`);
+    if (details) {
+      assert.ok(
+        details.territory.includes("Allied empire") &&
+          details.territory.includes(details.ally),
+      );
+      if (details.city)
+        assert.ok(
+          details.city.includes("Allied empire") &&
+            details.city.includes(details.ally),
+        );
+    }
+  }
+  if (alliances.length)
+    passed(
+      "recorded city-state allies highlight in every view and identify their allied empire",
+    );
+  await evaluate(
+    `document.querySelector('#mode').value=${JSON.stringify(initial)};document.querySelector('#mode').dispatchEvent(new Event('change'));document.querySelector('#clear-focus').click()`,
+  );
   if (serverURL && /\.civ5save$/i.test(save) && !ruleset && !localization) {
     assert.deepEqual(available, ["political", "physical", "army"]);
     const world = await evaluate(

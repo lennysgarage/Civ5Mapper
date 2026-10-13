@@ -43,6 +43,33 @@ export function mountViewer(root: Document = document) {
     drag: any = null,
     ignoreClick = false;
   const label = (owner) => data.labels[String(owner)] || "Unknown empire";
+  function knownAlly(civ) {
+    if (civ?.kind !== "city-state" || civ.allianceKnown !== true) return null;
+    const ally = civById.get(String(civ.ally));
+    return ally?.kind === "major" ? ally : null;
+  }
+  function allianceRows(owner) {
+    const civ = civById.get(String(owner));
+    if (civ?.kind !== "city-state") return [];
+    const ally = knownAlly(civ);
+    const rows = [
+      [
+        "Allied empire",
+        ally
+          ? label(ally.id)
+          : civ.allianceKnown === true && civ.ally === null
+            ? "None"
+            : "Unknown",
+      ],
+    ];
+    if (
+      ally &&
+      civ.allianceSinceTurn !== undefined &&
+      civ.allianceSinceTurn !== null
+    )
+      rows.push(["Allied since turn", civ.allianceSinceTurn]);
+    return rows;
+  }
   const status = (text) => {
     document.getElementById("status").textContent = text;
   };
@@ -115,10 +142,17 @@ export function mountViewer(root: Document = document) {
     if (String(owner) !== "" && !playerVisible(owner)) return;
     selected = String(owner);
     empireSelect.value = selected;
+    const allies = world.civilizations
+      .filter((c) => selected !== "" && String(knownAlly(c)?.id) === selected)
+      .sort((a, b) => label(a.id).localeCompare(label(b.id)) || a.id - b.id);
+    const focusedOwners = new Set([
+      selected,
+      ...allies.map((c) => String(c.id)),
+    ]);
     for (const node of svg.querySelectorAll("[data-owner]")) {
       node.classList.toggle(
         "focus-muted",
-        selected !== "" && node.dataset.owner !== selected,
+        selected !== "" && !focusedOwners.has(node.dataset.owner),
       );
     }
     for (const card of document.querySelectorAll(".empire-card")) {
@@ -138,6 +172,14 @@ export function mountViewer(root: Document = document) {
         ["Cities", cities.length],
         ["Owned tiles", owned],
       ];
+      rows.push(...allianceRows(selected));
+      if (civById.get(selected)?.kind === "major")
+        rows.push([
+          "Known city-state allies",
+          allies.length
+            ? allies.map((c) => label(c.id)).join(", ")
+            : "None recorded",
+        ]);
       if (entry) rows.push(["Military units", entry.total]);
       showDetails(
         label(selected),
@@ -497,6 +539,7 @@ export function mountViewer(root: Document = document) {
       ["Empire", label(city.owner)],
       ["Position", `(${city.x}, ${city.y})`],
     ];
+    rows.push(...allianceRows(city.owner));
     if (city.capital === true)
       rows.push([
         "Capital",
