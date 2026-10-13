@@ -127,7 +127,8 @@ borders and positions remain separate facts. `empireLabels` (player/civilization
 SVG territory titles identify relationships; its legend explains shading.
 
 City-states omit territory-name labels and keep one city label at the decoded
-city position, tinted with `cityStateLabelColor`. Capital markers are larger
+city position. City labels use white lettering with a dark halo; city-state
+halos use `cityStateLabelColor`. Capital markers are larger
 gold circular badges for empires and purple diamond badges for city-states
 (`capitalSize`, default 12); unknown capital status stays an
 ordinary city marker. River strokes use explicit E/SE/SW presence edges along
@@ -141,7 +142,11 @@ Claimed water rendering uses actual `landWater: water` and non-null `owner`:
 `ownedWaterColor` is one shared presentation color, distinct from `oceanColor`
 for unowned water. `showOwnedWater` controls this layer; it does not change
 ownership or distinguish still-unknown lakes. Owned water polygons are grouped
-by owner and retain shared ownership boundary strokes even when fills match.
+by owner, with empire-colored outlines and dark ownership boundaries even when fills match.
+The atlas uses deep blue ocean and lighter blue claimed water. Known `FEATURE_ICE`
+tiles appear in all modes. `showHexGrid` adds a subtle, non-interactive grid with
+each shared edge drawn once (default on; off for minimalist). The browser’s
+Hex grid layer toggle also applies to the exported view.
 `mountainSize` (6–30, default 16) controls two-tone vector mountain icons placed
 only where `elevation: mountain` is known. Light icon peaks are decorative
 cartography, not an additional snow/terrain assertion.
@@ -318,3 +323,11 @@ follower shares remain distinct. Zero followers is pale, unknown records or
 missing population are gray, and holy diamonds retain their own faith colors.
 The dynamic map legend, tooltips and exported SVG/PNG preserve these semantics.
 Clearing selection restores the majority overview.
+
+Presentation presets use a validated `theme` (`atlas`, `parchment`, or
+`minimalist`). Atlas uses original empire colors and white labels with dark
+halos. Parchment mixes empire inks with warm paper tones and uses serif labels;
+minimalist uses lighter colors, pale water and fewer details. These are display
+colors only: source civilization colors and all map data are preserved.
+Changing presets in the browser restores that preset’s layer defaults while
+retaining the view and selection. The canvas background matches the preset.

@@ -1,5 +1,6 @@
 // Direct TypeScript port of validated algorithms. MIT; see NOTICE.
 import * as compat from "./compat.js";
+import { THEMES, presentationColor } from "./presentation.js";
 import {
   validateReligion,
   religionAvailability,
@@ -18,8 +19,9 @@ export let DEFAULT_STYLE: any, PALETTE: any, TERRAIN_COLORS: any, VERTICES: any;
 /** Deterministic SVG renderer for complete normalized JSON; no binary imports. */
 
 DEFAULT_STYLE = compat.dict([
-  ["oceanColor", "#315465"],
-  ["ownedWaterColor", "#699d9f"],
+  ["theme", "atlas"],
+  ["oceanColor", "#244b60"],
+  ["ownedWaterColor", "#80b3bd"],
   ["unownedColor", "#eee7d5"],
   ["showUnownedPattern", true],
   ["borderColor", "#292a28"],
@@ -35,6 +37,7 @@ DEFAULT_STYLE = compat.dict([
   ["shadeAlliedCityStates", true],
   ["allyShade", 0.35],
   ["showOwnedWater", true],
+  ["showHexGrid", true],
   ["mountainSize", 16],
   ["showCapitals", true],
   ["capitalSize", 12],
@@ -1626,6 +1629,10 @@ export function render_svg(
     }
     compat.update(config, style);
   }
+  if (!Object.hasOwn(THEMES, compat.get(config, "theme"))) {
+    throw new compat.ParseError("theme must be atlas, parchment or minimalist");
+  }
+  const theme = THEMES[compat.get(config, "theme") as keyof typeof THEMES];
   for (const __v67 of compat.iter([
     "oceanColor",
     "ownedWaterColor",
@@ -1673,6 +1680,7 @@ export function render_svg(
     "showForests",
     "shadeAlliedCityStates",
     "showOwnedWater",
+    "showHexGrid",
     "showRoads",
     "showCapitals",
     "showRivers",
@@ -2070,7 +2078,7 @@ export function render_svg(
     '<rect width="100%" height="100%" fill="' +
       compat.format(compat.get(config, "oceanColor"), "") +
       '"/>',
-    "<style>text{font-family:Georgia,serif;fill:#292a28;paint-order:stroke;stroke:#f4e9ce;stroke-width:0.6px;stroke-linejoin:round} .country{font-weight:bold;letter-spacing:1px}</style>",
+    `<style>text{font-family:Georgia,serif;fill:${theme.text};paint-order:stroke;stroke:${theme.halo};stroke-width:2px;stroke-linejoin:round} .country{font-weight:bold;letter-spacing:1px} .city-label,.city-state-label{font-family:${theme.font};fill:${theme.city};stroke:${theme.cityHalo};stroke-width:2.4px;font-weight:600} .city-state-label{stroke:${compat.get(config, "theme") === "atlas" ? compat.get(config, "cityStateLabelColor") : theme.cityHalo}}</style>`,
     '<text x="' +
       compat.format(margin, "") +
       '" y="30" font-size="13">' +
@@ -2141,7 +2149,11 @@ export function render_svg(
     ) {
       throw new compat.ParseError("invalid civilization color");
     }
-    compat.put(colors, civ_id, color);
+    compat.put(
+      colors,
+      civ_id,
+      presentationColor(color, compat.get(config, "theme")),
+    );
   }
   function label(civ: any): any {
     return empire_label(civ, compat.get(config, "empireLabels"));
@@ -2279,7 +2291,7 @@ export function render_svg(
   ) {
     compat.append(
       legend,
-      "Tinted water: claimed territory. Borders retain ownership.",
+      "Blue water: claimed territory. Colored outlines identify its empire.",
     );
   }
   if (compat.truth(allies)) {
@@ -2526,7 +2538,9 @@ export function render_svg(
         compat.format(path, "") +
         '" fill="' +
         compat.format(compat.get(config, "ownedWaterColor"), "") +
-        '" fill-rule="evenodd"><title>' +
+        '" stroke="' +
+        compat.format(compat.get(colors, owner), "") +
+        '" stroke-width="3.6" stroke-linejoin="round" fill-rule="evenodd"><title>' +
         compat.format(compat.escape(caption), "") +
         "</title></path>",
     );
@@ -2689,6 +2703,38 @@ export function render_svg(
           "/></g>",
       );
     }
+  }
+  // Use the territory lattice, drawing shared hex edges only once.
+  const gridEdges = new Map<string, string>();
+  for (const surfaceTile of compat.get(world, "tiles")) {
+    const vertices = lattice(surfaceTile);
+    if (compat.get(surfaceTile, "feature", null) === "FEATURE_ICE") {
+      out.push(
+        '<path class="ice" pointer-events="none" d="M ' +
+          vertices.map(coords).join(" L ") +
+          ' Z" fill="#edf7fa" stroke="#b4d3df" stroke-width="0.6"><title>Ice</title></path>',
+      );
+    }
+    if (compat.get(config, "showHexGrid")) {
+      for (let i = 0; i < 6; i++) {
+        const a = vertices[i],
+          b = vertices[(i + 1) % 6];
+        const key = [a.join(","), b.join(",")].sort().join("|");
+        gridEdges.set(key, "M " + coords(a) + " L " + coords(b));
+      }
+    }
+  }
+  if (gridEdges.size) {
+    out.push(
+      '<path class="hex-grid" pointer-events="none" d="' +
+        [...gridEdges.entries()]
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([, path]) => path)
+          .join(" ") +
+        '" fill="none" stroke="' +
+        theme.grid +
+        '" stroke-opacity="0.22" stroke-width="0.55"/>',
+    );
   }
   for (const __v119 of compat.iter(boundary_edges(world))) {
     {
@@ -2871,31 +2917,7 @@ export function render_svg(
         );
       }
       feature = compat.get(tile, "feature", null);
-      if (compat.truth(compat.eq(feature, "FEATURE_ICE"))) {
-        path = compat.add(
-          compat.add(
-            "M ",
-            compat.join(
-              " L ",
-              (() => {
-                const __v128: any[] = [];
-                for (const __v129 of compat.iter(lattice(tile))) {
-                  let p: any = __v129;
-                  __v128.push(coords(p));
-                }
-                return __v128;
-              })(),
-            ),
-          ),
-          " Z",
-        );
-        compat.append(
-          out,
-          '<path class="ice" d="' +
-            compat.format(path, "") +
-            '" fill="#edf5f2" stroke="#becfd0" stroke-width="0.6"><title>Ice</title></path>',
-        );
-      } else {
+      {
         if (
           compat.truth(
             compat.has(
@@ -3706,9 +3728,7 @@ export function render_svg(
               "city-state",
             ),
           )
-            ? ' style="fill:' +
-              compat.format(compat.get(config, "cityStateLabelColor"), "") +
-              '" class="city-state-label"'
+            ? ' class="city-state-label"'
             : ' class="city-label"';
           compat.append(
             out,

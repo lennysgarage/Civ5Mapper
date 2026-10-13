@@ -1,3 +1,4 @@
+import { presentationColor } from "./presentation.js";
 import {
   culturePerspective,
   cultureOverviewAvailable,
@@ -56,6 +57,8 @@ export function renderHtml(
   for (const view of ["political", "physical", "army", "culture", "religion"]) {
     const settings = {
       ...config,
+      // Keep optional layers available; payload defaults control visibility.
+      showHexGrid: true,
       showCities: true,
       showRoads: true,
       showRivers: true,
@@ -85,8 +88,10 @@ export function renderHtml(
     ),
   };
   world.civilizations.forEach((c, i) => {
-    colors[c.id] =
-      config.colorOverrides?.[c.id] || c.color || PALETTE[i % PALETTE.length];
+    colors[c.id] = presentationColor(
+      config.colorOverrides?.[c.id] || c.color || PALETTE[i % PALETTE.length],
+      config.theme,
+    );
     labels[c.id] = empireLabel(c, config.empireLabels);
   });
   const data: any = {};
@@ -118,7 +123,9 @@ export function renderHtml(
     labels,
     colors,
     roleLabels: ROLE_LABELS,
+    oceanColor: config.oceanColor,
     layers: {
+      hexGrid: config.showHexGrid,
       armies: true,
       cities: config.showCities,
       religionTerritories: true,

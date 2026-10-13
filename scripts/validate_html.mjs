@@ -939,6 +939,41 @@ try {
           (await evaluate('document.querySelector("#message").textContent')),
       );
     };
+    // Switching presets must update the canvas as well as the embedded SVG,
+    // and reset preset layer defaults without losing the current map.
+    for (const [preset, ocean] of [
+      ["parchment", "#a3b6ac"],
+      ["minimalist", "#d4e3e8"],
+      ["atlas", "#244b60"],
+    ]) {
+      await evaluate(
+        `document.querySelector('#style').value=${JSON.stringify(preset)};document.querySelector('#style').dispatchEvent(new Event('change'))`,
+      );
+      await until(
+        `(()=>{const v=document.querySelector('#viewer');return Boolean(v.contentWindow?.civmapperViewer) && JSON.parse(v.contentDocument.querySelector('#world-data').textContent).oceanColor===${JSON.stringify(ocean)}})()`,
+      );
+      const appearance = await evaluate(
+        `(()=>{const d=document.querySelector('#viewer').contentDocument,w=document.querySelector('#viewer').contentWindow;d.querySelector('#mode').value='political';d.querySelector('#mode').dispatchEvent(new Event('change'));d.querySelector('#clear-focus').click();d.querySelector('#fit').click();const grid=d.querySelector('#stage .hex-grid');return { background:w.getComputedStyle(d.querySelector('#stage')).backgroundColor,grid:!!grid && !grid.classList.contains('layer-hidden'),roads:d.querySelector('[data-layer=roads]').checked,ice:d.querySelectorAll('#stage .ice').length };})()`,
+      );
+      const rgb =
+        "rgb(" +
+        [1, 3, 5].map((i) => parseInt(ocean.slice(i, i + 2), 16)).join(", ") +
+        ")";
+      assert.equal(appearance.background, rgb);
+      assert.equal(appearance.grid, preset !== "minimalist");
+      assert.equal(appearance.roads, preset !== "minimalist");
+      if (reportPath) {
+        const shot = await call("Page.captureScreenshot", { format: "png" });
+        await writeFile(
+          reportPath + "-preset-" + preset + ".png",
+          Buffer.from(shot.data, "base64"),
+        );
+      }
+      passed(
+        preset +
+          " browser preset updates background, hex grid and road defaults",
+      );
+    }
     if (/\.civ5save$/i.test(save) && !ruleset && !localization) {
       const before = await evaluate(
         'JSON.parse(document.querySelector("#viewer").contentDocument.querySelector("#world-data").textContent).world',

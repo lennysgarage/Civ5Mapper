@@ -8,6 +8,13 @@ export const PRESETS = {
 
 export const STYLES = {
   minimalist: {
+    theme: "minimalist",
+    ownedWaterColor: "#bfd6df",
+    showRoads: false,
+    showUnownedPattern: false,
+    riverColor: "#5594ad",
+    riverWidth: 1.2,
+    showHexGrid: false,
     oceanColor: "#d4e3e8",
     unownedColor: "#e6e5d9",
     borderColor: "#343b40",
@@ -18,7 +25,13 @@ export const STYLES = {
     showForests: false,
   },
   parchment: {
-    oceanColor: "#9caba4",
+    theme: "parchment",
+    ownedWaterColor: "#bec6b0",
+    riverColor: "#618b87",
+    riverWidth: 1.4,
+    roadColor: "#92754c",
+    roadWidth: 1.2,
+    oceanColor: "#a3b6ac",
     unownedColor: "#e5d4ac",
     borderColor: "#4b3c2e",
     borderWidth: 1.2,
@@ -27,7 +40,8 @@ export const STYLES = {
     showForests: false,
   },
   atlas: {
-    oceanColor: "#315465",
+    theme: "atlas",
+    oceanColor: "#244b60",
     unownedColor: "#eee7d5",
     borderColor: "#292a28",
     borderWidth: 1.4,
@@ -37,7 +51,7 @@ export const STYLES = {
     empireLabels: "player",
     shadeAlliedCityStates: true,
     allyShade: 0.35,
-    ownedWaterColor: "#699d9f",
+    ownedWaterColor: "#80b3bd",
     showOwnedWater: true,
     mountainSize: 16,
     showCapitals: true,

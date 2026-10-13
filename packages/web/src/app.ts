@@ -102,6 +102,7 @@ function mount(
   resetView = false,
   selectedMode?: string,
   ready?: () => void,
+  resetLayers = false,
 ) {
   const style = {
     ...STYLES[el("style").value],
@@ -131,6 +132,7 @@ function mount(
   const previous = resetView
     ? null
     : viewer.contentWindow?.civmapperViewer?.getState();
+  if (previous && resetLayers) delete previous.layers;
   if (previous && selectedMode) previous.mode = selectedMode;
   el("replay-mode").querySelector('[value="physical"]').disabled =
     !world.tiles.every(
@@ -315,7 +317,8 @@ el("load-replay").onclick = async () => {
   }
 };
 el("style").onchange = () => {
-  if (currentWorld && !busy) mount(currentWorld);
+  if (currentWorld && !busy)
+    mount(currentWorld, false, undefined, undefined, true);
 };
 el("replay-mode").onchange = () => {
   if (currentReplay && !busy)

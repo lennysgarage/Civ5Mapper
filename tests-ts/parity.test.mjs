@@ -10,6 +10,13 @@ const fixtures = JSON.parse(
     ),
   ),
 );
+const presentation = JSON.parse(
+  gunzipSync(
+    fs.readFileSync(
+      new URL("./fixtures/render-presentation.json.gz", import.meta.url),
+    ),
+  ),
+);
 const modules = Object.fromEntries(
   await Promise.all(
     [...new Set(fixtures.map((f) => f.module))].map(async (m) => [
@@ -66,7 +73,14 @@ for (const [i, fixture] of fixtures.entries())
         tile.delete("territoryCityKnown");
         tile.delete("territoryCityReference");
       }
-    assert.deepEqual(canonical(output(actual)), canonical(fixture.expected));
+    assert.deepEqual(
+      canonical(output(actual)),
+      canonical(
+        fixture.module === "render" && fixture.function === "render_svg"
+          ? presentation[i]
+          : fixture.expected,
+      ),
+    );
     assert.deepEqual(
       canonical(output(args)),
       canonical(fixture.afterArgs ?? fixture.args),

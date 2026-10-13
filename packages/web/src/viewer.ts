@@ -66,6 +66,7 @@ export function mountViewer(root: Document = document) {
     cities: ["Cities", ".capital-marker,.city-marker"],
     religionTerritories: ["Assigned-city religion", ".religion-territory"],
     holyCities: ["Holy cities", ".holy-city-marker"],
+    hexGrid: ["Hex grid", ".hex-grid"],
     roads: ["Roads", ".route"],
     rivers: ["Rivers", ".river"],
     cityLabels: ["City labels", ".city-label,.city-state-label"],
@@ -732,6 +733,7 @@ export function mountViewer(root: Document = document) {
       view && base
         ? { x: view.x / base.w, y: view.y / base.h, w: view.w / base.w }
         : null;
+    stage.style.backgroundColor = data.oceanColor;
     stage.replaceChildren(template.content.cloneNode(true));
     svg = stage.querySelector("svg");
     const b = svg.viewBox.baseVal;
