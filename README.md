@@ -12,6 +12,22 @@ remain unsupported. Private saves are never bundled. Compact default Lekmod
 metadata supplies names, terrain, colors and military classification.
 See [format evidence and limitations](docs/feasibility.md).
 
+## Screenshots
+
+The same real multiplayer save at turn 132, shown in each built-in style.
+Click any screenshot to view it at full size.
+
+[![Atlas political map in the browser, with empire-colored water outlines, city labels, polar ice and hex grid controls](docs/images/browser-atlas.png)](docs/images/browser-atlas.png)
+
+**Atlas** — vivid empire colors, deep blue oceans and detailed geography.
+The sidebar provides empire highlighting, player filters and layer toggles;
+PNG and SVG exports capture the current view.
+
+| Parchment | Minimalist |
+| --- | --- |
+| [![Parchment map with warm, muted empire colors and serif labels](docs/images/browser-parchment.png)](docs/images/browser-parchment.png) | [![Minimalist map with pale oceans, lighter empire colors and fewer visible details](docs/images/browser-minimalist.png)](docs/images/browser-minimalist.png) |
+| Warm inks, muted water and serif labels. | Lighter colors, with roads and the hex grid off by default. |
+
 ## Browser application
 
 Install Node **22.12+**, then:
