@@ -324,51 +324,79 @@ try {
     const result = await evaluate(`(async()=>{
       const data=JSON.parse(document.querySelector('#world-data').textContent);
       const mode=document.querySelector('#mode'); mode.value='culture';mode.dispatchEvent(new Event('change'));
-      const select=document.querySelector('#perspective'), ids=Array.from(select.options).map(o=>Number(o.value));
-      const source=ids.find(id=>id!==Number(select.value)) ?? ids[0];
-      select.value=String(source);select.dispatchEvent(new Event('change'));
-      const target=data.world.culture.players.find(p=>p.alive&&p.playerId!==source&&p.lifetimeCulture!==null&&document.querySelector('#stage path[data-surface="land"][data-owner="'+p.playerId+'"]'));
-      if(!target)throw new Error('No cultural target territory');
-      const path=document.querySelector('#stage path[data-surface="land"][data-owner="'+target.playerId+'"]');
+      document.querySelector('#clear-focus').click();
+      const select=document.querySelector('#perspective');
+      const overview=select.value==='' && window.civmapperViewer.getState().perspective===null && document.querySelector('#stage .culture-legend').textContent.includes('overview');
+      const overviewTotals=data.world.culture.players.filter(p=>p.alive).every(p=>{
+        const targets=data.world.civilizations.filter(c=>c.kind==='major'&&c.id!==p.playerId);
+        const total=targets.reduce((sum,c)=>sum+p.accumulatedInfluence[c.id],0);
+        const path=document.querySelector('#stage path[data-surface="land"][data-owner="'+p.playerId+'"]');
+        return !path||path.querySelector('title').textContent.includes('Total accumulated tourism exported: '+total);
+      });
+      const source=data.world.culture.players.find(p=>p.alive&&document.querySelector('#stage path[data-surface="land"][data-owner="'+p.playerId+'"]')).playerId;
+      const path=document.querySelector('#stage path[data-surface="land"][data-owner="'+source+'"]');
       path.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+      const target=data.world.culture.players.find(p=>p.alive&&p.playerId!==source&&p.lifetimeCulture!==null&&document.querySelector('#stage path[data-surface="land"][data-owner="'+p.playerId+'"]'));
       const influence=data.world.culture.players.find(p=>p.playerId===source).accumulatedInfluence[target.playerId];
       const percent=target.lifetimeCulture>0?Math.floor(influence*100/target.lifetimeCulture):0;
       const details=document.querySelector('#details').textContent;
-      const focus=Array.from(document.querySelectorAll('#stage [data-owner]')).every(n=>n.classList.contains('focus-muted')===(n.dataset.owner!==String(target.playerId)));
+      const noDimming=!document.querySelector('#stage .focus-muted');
+      const sourcePath=document.querySelector('#stage path[data-owner="'+source+'"][data-surface="land"]');
+      const sourceMarked=sourcePath.dataset.tourismRole==='source' && sourcePath.getAttribute('fill')===data.world.civilizations.find(c=>c.id===source).color && sourcePath.hasAttribute('stroke-dasharray');
       const state=window.civmapperViewer.getState();
       mode.value='political';mode.dispatchEvent(new Event('change'));
       window.civmapperViewer.restoreState(state);
       const restored=Number(select.value)===source&&window.civmapperViewer.getState().perspective===source;
-      const before=path.getAttribute('fill');
       const live=document.querySelector('#stage path[data-surface="land"][data-owner="'+target.playerId+'"]');
+      const fill=live.getAttribute('fill');
       const create=URL.createObjectURL,click=HTMLAnchorElement.prototype.click;let blob,filename;
       URL.createObjectURL=function(value){blob=value;return create.call(this,value)};
       HTMLAnchorElement.prototype.click=function(){filename=this.download};
       let xml;
       try{document.querySelector('#export-svg').click();xml=new DOMParser().parseFromString(await blob.text(),'image/svg+xml')}
       finally{URL.createObjectURL=create;HTMLAnchorElement.prototype.click=click}
-      return {source,percent,details,focus,restored,selected:Number(select.value),fill:live.getAttribute('fill'),before,filename,
-        exportedFill:xml.querySelector('path[data-surface="land"][data-owner="'+target.playerId+'"]').getAttribute('fill'),
-        legend:xml.querySelector('.culture-legend').textContent,sourceLabel:data.labels[source]};
+      const legend=xml.querySelector('.culture-legend').textContent;
+      const exportedFill=xml.querySelector('path[data-surface="land"][data-owner="'+target.playerId+'"]').getAttribute('fill');
+      const selected=Number(select.value);
+      document.querySelector('#clear-focus').click();
+      const cleared=select.value==='' && window.civmapperViewer.getState().perspective===null && document.querySelector('#stage .culture-legend').textContent.includes('overview');
+      const overviewState=window.civmapperViewer.getState();window.civmapperViewer.restoreState(overviewState);
+      const overviewRestored=select.value==='';
+      select.value=String(source);select.dispatchEvent(new Event('change'));
+      const dropdown=window.civmapperViewer.getState().selected===String(source);
+      return {source,percent,details,noDimming,restored,selected,fill,filename,exportedFill,legend,sourceLabel:data.labels[source],overview,cleared,overviewRestored,dropdown,sourceMarked,overviewTotals};
     })()`);
+    assert.ok(result.overview, "culture starts with overview after clear");
+    assert.ok(
+      result.overviewTotals,
+      "each empire territory shows its own summed exports",
+    );
     assert.equal(
       result.selected,
       result.source,
-      "target click preserves influence source",
+      "territory click selects outgoing influence source",
     );
-    assert.match(result.details, /Accumulated tourism/);
+    assert.match(result.details, /Outgoing accumulated tourism influence/);
     assert.ok(result.details.includes(`${result.percent}%`));
-    assert.ok(result.focus, "culture focus excludes city-state allies");
+    assert.ok(result.noDimming, "all tourism targets remain visible");
+    assert.ok(
+      result.sourceMarked,
+      "source remains in empire color with a distinct outline",
+    );
     assert.ok(
       result.restored,
-      "culture perspective survives restoring viewer state",
+      "selected source survives restoring viewer state",
     );
-    assert.equal(result.fill, result.before);
+    assert.ok(
+      result.cleared && result.overviewRestored,
+      "clearing and state restore preserve overview",
+    );
+    assert.ok(result.dropdown, "source dropdown synchronizes empire selection");
     assert.equal(result.exportedFill, result.fill);
     assert.ok(result.filename.endsWith(`-culture-from-${result.source}.svg`));
     assert.ok(result.legend.includes(result.sourceLabel));
     passed(
-      "culture source selection, target details, independent focus, persistence and SVG export",
+      "culture overview, click-to-source, outgoing totals, clear/reset, persistence and SVG export",
     );
   }
   await evaluate(
@@ -650,7 +678,9 @@ try {
     assert.ok(
       result.filename.endsWith(
         mode === "culture"
-          ? `-culture-from-${result.perspective}.png`
+          ? result.perspective === null
+            ? "-culture-overview.png"
+            : `-culture-from-${result.perspective}.png`
           : `-${mode}.png`,
       ),
     );

@@ -1,4 +1,7 @@
-import { culturePerspective, cultureSources } from "./culture_present.js";
+import {
+  culturePerspective,
+  cultureOverviewAvailable,
+} from "./culture_present.js";
 import {
   renderSvg,
   militarySummary,
@@ -38,10 +41,10 @@ export function renderHtml(
   const primary = { ...style };
   if (mode !== "army")
     Object.assign(primary, { armyIcons: "domain", showMilitarySummary: false });
-  const cultureSource =
-    world.culture && cultureSources(world).length
-      ? culturePerspective(world, perspective)
-      : undefined;
+  const cultureSource = cultureOverviewAvailable(world)
+    ? (perspective ?? null)
+    : undefined;
+  if (cultureSource !== undefined) culturePerspective(world, perspective);
   renderSvg(world, primary, { mode, perspective });
   if (
     new Set(world.cities.map((c) => String(c.id))).size !== world.cities.length
@@ -132,7 +135,7 @@ export function renderHtml(
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CivMapper · ${title}</title><style>${assets.css}</style></head><body><header><div><strong>CivMapper</strong><span>${title}</span></div><label>View <select id="mode">${["political", "physical", "army", "culture"].map((v) => `<option value="${v}"${variants[v] ? "" : " disabled"}>${{ political: "Political", physical: "Physical terrain", army: "Army", culture: "Tourism influence" }[v]}</option>`).join("")}</select></label><nav aria-label="Map navigation"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="fit">Fit map</button><button id="export-png">Export PNG</button><button id="export-svg">Export SVG</button></nav></header><main><section id="stage" tabindex="0" aria-label="Interactive map. Drag to pan; scroll to zoom."></section><aside><section><h1>Explore the world</h1><p class="hint">Drag to pan · scroll to zoom · click a city or unit</p><div id="culture-controls" hidden><label for="perspective">Influence from</label><select id="perspective"></select><p class="hint">Recorded tourism ÷ target lifetime culture. Colors use a fixed 0–200% scale; higher values keep their percentage. Hatched territories have unknown data. Gray territories are not targets.</p></div><label for="empire">Highlight an empire</label><select id="empire"><option value="">All empires</option></select><button id="clear-focus">Clear highlight</button></section><section><h2>Player groups</h2><div id="player-filters"></div><p class="hint">Human includes current human slots and retained player names after AI takeover. City-states and unknown groups stay visible.</p></section><section><h2>Layers</h2><div id="layers"></div></section><section><h2>Find a city</h2><input id="search" type="search" aria-label="City name" placeholder="Search cities…" autocomplete="off"><div id="search-results" aria-live="polite"></div></section><section id="details" aria-live="polite"><h2>Map details</h2><p>Select a city, army marker or territory.</p></section><section><h2 id="summary-title">Empires</h2><div id="summary"></div></section><details class="availability"><summary>Available views</summary><div id="availability"></div></details><p class="hint">Deterministic geography · current save data</p></aside></main><div id="status" class="visually-hidden" role="status"></div><noscript>${variants[mode]}</noscript>${Object.entries(
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CivMapper · ${title}</title><style>${assets.css}</style></head><body><header><div><strong>CivMapper</strong><span>${title}</span></div><label>View <select id="mode">${["political", "physical", "army", "culture"].map((v) => `<option value="${v}"${variants[v] ? "" : " disabled"}>${{ political: "Political", physical: "Physical terrain", army: "Army", culture: "Tourism influence" }[v]}</option>`).join("")}</select></label><nav aria-label="Map navigation"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="fit">Fit map</button><button id="export-png">Export PNG</button><button id="export-svg">Export SVG</button></nav></header><main><section id="stage" tabindex="0" aria-label="Interactive map. Drag to pan; scroll to zoom."></section><aside><section><h1>Explore the world</h1><p class="hint">Drag to pan · scroll to zoom · click a city or unit</p><div id="culture-controls" hidden><label for="perspective">Influence from</label><select id="perspective"><option value="">Overview: total tourism exported</option></select><p class="hint">Overview shades each empire’s own territory by its total accumulated tourism exported to other major empires. Click an empire to show its influence over others; clear the selection to return. In the selected view, darker purple means stronger influence relative to each target’s lifetime culture.</p></div><label for="empire">Highlight an empire</label><select id="empire"><option value="">All empires</option></select><button id="clear-focus">Clear highlight</button></section><section><h2>Player groups</h2><div id="player-filters"></div><p class="hint">Human includes current human slots and retained player names after AI takeover. City-states and unknown groups stay visible.</p></section><section><h2>Layers</h2><div id="layers"></div></section><section><h2>Find a city</h2><input id="search" type="search" aria-label="City name" placeholder="Search cities…" autocomplete="off"><div id="search-results" aria-live="polite"></div></section><section id="details" aria-live="polite"><h2>Map details</h2><p>Select a city, army marker or territory.</p></section><section><h2 id="summary-title">Empires</h2><div id="summary"></div></section><details class="availability"><summary>Available views</summary><div id="availability"></div></details><p class="hint">Deterministic geography · current save data</p></aside></main><div id="status" class="visually-hidden" role="status"></div><noscript>${variants[mode]}</noscript>${Object.entries(
     variants,
   )
     .map(([view, svg]) => `<template id="map-${view}">${svg}</template>`)

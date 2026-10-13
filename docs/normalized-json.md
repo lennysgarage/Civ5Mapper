@@ -237,11 +237,16 @@ Independent extraction statuses are `tourismInfluence`, `cultureLifetime`,
 `cultureContact` and `cultureThresholds`. Partial records remain usable per pair;
 missing targets are hatched distinctly from verified zero. The culture mode
 selects a source and shades target major land territories on a fixed 0–200%
-ratio scale (capped colors, uncapped numbers). Source land, city-states, unowned
+ratio scale (capped colors, uncapped numbers). The source keeps its empire color and dashed outline. City-states, unowned
 land and verified inactive targets are neutral; owned water keeps its water
 palette. A zero lifetime denominator follows the game's zero percentage.
-CLI rendering uses `--mode culture --perspective <player-id>`; the interactive
-source selector remains separate from target focus and details.
+CLI `--mode culture` defaults to an overview shading each major empire’s own
+territory by its summed accumulated tourism exported to other major empires,
+including eliminated targets. The shared scale runs from zero to the largest
+known total in the current snapshot. Self and city-states are excluded. Optional `--perspective <player-id>` shows
+that empire’s outgoing influence. Interactive selection chooses the source;
+clearing selection returns to the overview. Missing pairs leave a sum unknown and hatched. Known zero totals use the light
+end of the scale; lifetime culture is not needed for overview totals.
 
 Current culture is removed when preparing replay worlds from a base save. Replay
 events do not supply directed culture snapshots, and current totals are never

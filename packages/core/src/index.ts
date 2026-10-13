@@ -92,14 +92,13 @@ export function renderSvg(
   options: {
     mode?: string;
     interactive?: boolean;
-    perspective?: number;
+    perspective?: number | null;
     captions?: string[] | null;
   } = {},
 ) {
   const culture = options.mode === "culture";
-  const perspective = culture
-    ? culturePerspective(world, options.perspective)
-    : undefined;
+  const perspective = culture ? (options.perspective ?? null) : undefined;
+  if (culture) culturePerspective(world, perspective ?? undefined);
   const svg = renderer.render_svg(
     p.wrapJson(world),
     culture
@@ -111,7 +110,7 @@ export function renderSvg(
     culture ? "political" : (options.mode ?? "political"),
     options.interactive ?? false,
   );
-  return culture ? cultureSvg(svg, world, perspective!) : svg;
+  return culture ? cultureSvg(svg, world, perspective ?? null) : svg;
 }
 export function armyGroups(world: World) {
   return [...renderer.army_groups(p.wrapJson(world))].map(([key, units]) => ({

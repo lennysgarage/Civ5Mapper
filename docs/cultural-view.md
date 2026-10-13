@@ -1,16 +1,21 @@
 # Tourism influence view
 
-The culture view selects a source major empire and shades other major empires' **land territories** by its recorded accumulated tourism influence divided by each target's lifetime culture. City-states, the source, unowned land and verified inactive players are neutral. Owned water retains the existing water palette.
+The culture view opens with **total accumulated tourism exported**: each living major empire’s own land is shaded by the sum of its saved tourism influence totals against other major empires, including eliminated targets. Self and city-states are excluded. A shared cream-to-purple scale runs from zero to the largest known total in this snapshot; darker purple means more exported tourism. This is a cumulative total of directed influence, not a per-turn tourism rate.
+
+Select an empire to shade other major empires’ land by its recorded influence divided by each target’s lifetime culture. The selected source keeps its empire color and dashed outline; city-states, unowned land and verified inactive players are neutral. Owned water retains its existing water palette.
 
 ```sh
+civmapper render-save game.Civ5Save --mode culture -o overview.svg
 civmapper render-save game.Civ5Save --mode culture --perspective 0 -o influence.svg
 civmapper render-save game.Civ5Save --mode culture --perspective 0 -o influence.png
 civmapper render world.json --mode culture --perspective 0 -o influence.html
 ```
 
-The browser's **Influence from** selector defaults to the lowest eligible major player ID. It remains independent of the highlight selector and clicking a target. Target details show accumulated tourism, target lifetime culture, integer percentage, contact availability and the game level if enough verified metadata exists. Switching views, changing layers, restoring the viewer state, and downloading the current SVG/PNG preserve the selected source.
+The browser defaults to **Overview: total tourism exported** and lists all living major empires’ totals in a ranked sidebar. Click an empire (or choose it in either selector) to show its outgoing influence over every other empire, with ranked accumulated totals and percentages. Clearing selection returns to the overview. Targets remain visible instead of being dimmed. Switching views and exports preserve the selection.
 
-The palette is fixed at 0–200%, with stronger influence darker. Values above 200% keep their actual percentage but use the endpoint color. A verified zero uses the light endpoint. Missing totals are hatched, distinct from zero. A zero lifetime denominator follows the game's percentage of zero; it does not represent missing data.
+Every pair needed for an export sum must be known. Missing pairs or source records are hatched rather than treated as zero or summed partially. Known zero uses the light end of the scale. The legend shows numeric totals and the maximum used; incomplete empires do not set that maximum. No lifetime culture denominator is required for the overview.
+
+The selected-empire palette is fixed at 0–200%, with stronger influence darker on a consistent cream-to-purple scale, independent of the source empire’s color. The legend shows sample shades at 0%, 50%, 100% and 200%. Values above 200% keep their actual percentage but use the endpoint color. A verified zero uses the light endpoint. Missing totals are hatched, distinct from zero. A zero lifetime denominator follows the game's percentage of zero; it does not represent missing data.
 
 This view does not show city culture production, ownership pressure, city-state diplomatic influence, ideology pressure or a tourism rate. Production and per-turn tourism calculations require additional verified fields and are not reconstructed from cumulative values.
 
@@ -41,6 +46,6 @@ Schema `0.1` worlds may carry `culture: { turn, players, thresholds? }`. Each pl
 
 The matching ruleset database can supply the five ordered `CULTURE_LEVEL_EXOTIC`, `FAMILIAR`, `POPULAR`, `INFLUENTIAL` and `DOMINANT` defines. Their provenance includes the database SHA-256. Exact levels additionally require verified source/target team contact. The current binary decoder **does not extract contact**, so real-save details report contact unknown and omit exact level claims even when thresholds are available. Numeric recorded influence ratios remain usable. Supplied normalized snapshots can carry verified contact for level calculation.
 
-Extraction statuses independently report `tourismInfluence`, `cultureLifetime`, `cultureContact` and `cultureThresholds`. A culture view needs at least one usable source-to-target pair. CLI culture rendering requires `--perspective`; invalid, inactive or unavailable sources fail with an availability error. Other modes remain usable when optional culture data is unavailable.
+Extraction statuses independently report `tourismInfluence`, `cultureLifetime`, `cultureContact` and `cultureThresholds`. An overview needs at least one complete export total or usable directed influence pair. Selected-empire views need a known influence pair and target lifetime culture. CLI culture rendering defaults to the overview; optional `--perspective` selects outgoing influence; invalid, inactive or unavailable sources fail with an availability error. Other modes remain usable when optional culture data is unavailable.
 
 Replay events do not contain these directed snapshots. Replay preparation drops culture inherited from a current base save and marks its extraction fields unavailable. Current totals are never shown on historical frames.

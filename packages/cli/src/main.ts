@@ -132,9 +132,10 @@ function checkOptions(o: any) {
     throw new Error("unsupported render mode");
   if (
     o.mode === "culture" &&
-    (o.perspective === undefined || !/^\d+$/.test(o.perspective))
+    o.perspective !== undefined &&
+    !/^\d+$/.test(o.perspective)
   )
-    throw new Error("--mode culture requires --perspective <player-id>");
+    throw new Error("--perspective must be a nonnegative player ID");
   if (o.perspective !== undefined && o.mode !== "culture")
     throw new Error("--perspective requires --mode culture");
   if ((o.armyIcons || o.militarySummary) && o.mode !== "army")

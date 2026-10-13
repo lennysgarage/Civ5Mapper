@@ -15,6 +15,10 @@ import {
   cultureSources,
   cultureColor,
   cultureTerritory,
+  cultureExports,
+  cultureExportMaximum,
+  cultureExportColor,
+  cultureEmpireColor,
 } from "../dist/core/src/culture_present.js";
 import { readCultureRecord, extractCulture } from "../dist/core/src/culture.js";
 import { renderHtml } from "../dist/core/src/html.js";
@@ -59,7 +63,10 @@ test("culture direction, integer percentage, zero lifetime and unknown are disti
   w.culture.players[0].accumulatedInfluence[1] = 0;
   assert.equal(cultureTerritory(w, 0, 1).fill, cultureColor(0));
   assert.notEqual(cultureColor(0), cultureTerritory(w, 0, 0).fill);
-  assert.equal(cultureTerritory(w, 0, 2).fill, cultureTerritory(w, 0, 0).fill);
+  assert.notEqual(
+    cultureTerritory(w, 0, 2).fill,
+    cultureTerritory(w, 0, 0).fill,
+  );
   assert.equal(cultureColor(200), cultureColor(400));
 });
 test("game influence level requires verified contact and matching threshold metadata", () => {
@@ -101,6 +108,9 @@ test("shared culture SVG has target colors, distinct source and city-state neutr
   assert.match(svg, /Tourism influence/);
   assert.match(svg, /culture-unknown/);
   assert.ok(svg.includes(`fill="${cultureColor(11)}"`));
+  assert.equal(cultureTerritory(w, 0, 0).fill, cultureEmpireColor(w, 0));
+  assert.match(svg, /data-tourism-role="source"[^>]*stroke-dasharray="6 3"/);
+  assert.match(svg, /Tourism source:/);
   assert.match(svg, /class="culture-legend"/);
   assert.match(svg, /colors capped/);
   assert.throws(
@@ -117,7 +127,7 @@ test("shared culture SVG has target colors, distinct source and city-state neutr
   assert.deepEqual(payload.world.culture, w.culture);
   assert.equal(payload.perspective, 1);
 });
-test("CLI culture mode validates required perspective and renders normalized JSON", () => {
+test("CLI culture mode defaults to overview and validates optional perspective and renders normalized JSON", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "culture-test-"));
   try {
     const input = path.join(dir, "world.json"),
@@ -138,7 +148,11 @@ test("CLI culture mode validates required perspective and renders normalized JSO
         ],
         { encoding: "utf8" },
       );
-    assert.notEqual(run().status, 0);
+    assert.equal(run().status, 0);
+    assert.match(
+      fs.readFileSync(output, "utf8"),
+      /Accumulated tourism overview/,
+    );
     assert.notEqual(run("--perspective", "-1").status, 0);
     const good = run("--perspective", "0");
     assert.equal(good.status, 0, good.stderr);
@@ -343,4 +357,77 @@ test("bundled ruleset includes only five culture thresholds with matching manife
   } finally {
     db.close();
   }
+});
+
+test("overview shades each source by summed exports on a shared scale", () => {
+  const w = world();
+  assert.equal(cultureExports(w, 0).total, 23);
+  assert.equal(cultureExports(w, 1).total, 400);
+  assert.equal(cultureExportMaximum(w), 400);
+  assert.equal(
+    cultureTerritory(w, null, 0).fill,
+    cultureColor((23 / 400) * 200),
+  );
+  assert.equal(cultureTerritory(w, null, 1).fill, cultureColor(200));
+  assert.match(
+    cultureTerritory(w, null, 0).description,
+    /Total accumulated tourism exported: 23/,
+  );
+  assert.match(renderSvg(w, {}, { mode: "culture" }), /scale: 0–400/);
+  w.culture.players[0].accumulatedInfluence[0] = 999;
+  assert.equal(cultureExports(w, 0).total, 23, "self is excluded");
+  w.culture.players[0].lifetimeCulture = null;
+  w.culture.players[1].lifetimeCulture = null;
+  assert.doesNotThrow(
+    () => renderSvg(w, {}, { mode: "culture" }),
+    "overview needs no lifetime denominator",
+  );
+  w.culture.players[0].accumulatedInfluence[1] = null;
+  assert.equal(cultureExports(w, 0).total, null);
+  assert.equal(cultureTerritory(w, null, 0).fill, "url(#culture-unknown)");
+  w.culture.players[0].accumulatedInfluence[1] = 0;
+  w.culture.players[1].accumulatedInfluence[0] = 0;
+  assert.equal(cultureExportMaximum(w), 0);
+  assert.equal(cultureTerritory(w, null, 0).fill, cultureColor(0));
+  assert.equal(cultureTerritory(w, null, 1).fill, cultureColor(0));
+});
+test("export totals include eliminated major targets and retain incomplete totals as unknown", () => {
+  const w = world();
+  w.civilizations.push({
+    id: 3,
+    kind: "major",
+    name: "Eliminated",
+    eliminated: true,
+  });
+  w.culture.players.push({
+    playerId: 3,
+    alive: false,
+    lifetimeCulture: 10,
+    accumulatedInfluence: { 0: 1000, 1: 1000 },
+  });
+  w.culture.players[0].accumulatedInfluence[3] = 7;
+  assert.equal(cultureExports(w, 0).total, 30);
+  assert.equal(cultureExports(w, 1).total, null);
+  assert.equal(
+    cultureExportMaximum(w),
+    30,
+    "inactive sources do not set the scale",
+  );
+  assert.equal(cultureExports(w, 0).targets, 2, "city-states are excluded");
+  w.culture.players = w.culture.players.filter((p) => p.playerId !== 0);
+  assert.equal(cultureExports(w, 0).total, null);
+  assert.equal(cultureTerritory(w, null, 0).fill, "url(#culture-unknown)");
+});
+
+test("gray source retains identity without turning influence targets gray", () => {
+  const w = world();
+  const before = cultureTerritory(w, 0, 1).fill;
+  w.civilizations.find((c) => c.id === 0).color = "#888888";
+  assert.equal(cultureTerritory(w, 0, 0).fill, "#888888");
+  assert.equal(cultureTerritory(w, 0, 1).fill, before);
+  assert.equal(cultureTerritory(w, 0, 1).fill, cultureColor(11));
+  assert.equal(cultureTerritory(w, 1, 0).fill, cultureColor(200));
+  const svg = renderSvg(w, {}, { mode: "culture", perspective: 0 });
+  assert.match(svg, /Tourism source:/);
+  assert.ok(svg.includes(`fill="${cultureColor(200)}"`));
 });
