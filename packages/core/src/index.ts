@@ -6,6 +6,15 @@ import * as replays from "./replay.js";
 import * as replayRender from "./replay_render.js";
 import * as renderer from "./render.js";
 import * as military from "./military.js";
+import { validateCulture, type CultureState } from "./culture.js";
+import { culturePerspective, cultureSvg } from "./culture_present.js";
+export {
+  cultureSources,
+  culturePair,
+  cultureTerritory,
+  cultureColor,
+} from "./culture_present.js";
+export type { CultureState, CulturePlayer } from "./culture.js";
 export { ParseError } from "./compat.js";
 export { Reader } from "./binary.js";
 export const MAX_INPUT = 64 * 1024 * 1024;
@@ -42,6 +51,7 @@ export interface World {
   tiles: Record<string, any>[];
   cities: Record<string, any>[];
   units?: Record<string, any>[];
+  culture?: CultureState;
   inspection?: Record<string, any>;
 }
 export interface ExtractOptions {
@@ -74,6 +84,7 @@ export function extractSave(
 }
 export function validateWorld(world: World) {
   renderer.validate_world(p.wrapJson(world));
+  validateCulture(world);
 }
 export function renderSvg(
   world: World,
@@ -81,16 +92,26 @@ export function renderSvg(
   options: {
     mode?: string;
     interactive?: boolean;
+    perspective?: number;
     captions?: string[] | null;
   } = {},
 ) {
-  return renderer.render_svg(
+  const culture = options.mode === "culture";
+  const perspective = culture
+    ? culturePerspective(world, options.perspective)
+    : undefined;
+  const svg = renderer.render_svg(
     p.wrapJson(world),
-    style ? p.wrapJson(style) : null,
+    culture
+      ? p.wrapJson({ ...style, shadeAlliedCityStates: false })
+      : style
+        ? p.wrapJson(style)
+        : null,
     options.captions ?? null,
-    options.mode ?? "political",
+    culture ? "political" : (options.mode ?? "political"),
     options.interactive ?? false,
   );
+  return culture ? cultureSvg(svg, world, perspective!) : svg;
 }
 export function armyGroups(world: World) {
   return [...renderer.army_groups(p.wrapJson(world))].map(([key, units]) => ({

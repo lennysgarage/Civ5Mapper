@@ -18,6 +18,7 @@ const tables = {
   MinorCivilizations: ["Type", "Description"],
   Terrains: ["ID", "Type", "Water"],
   Features: ["Type"],
+  Defines: ["Name", "Value"],
   Routes: ["ID", "Type"],
   PlayerColors: ["Type", "PrimaryColor"],
   Colors: ["Type", "Red", "Green", "Blue"],
@@ -69,7 +70,7 @@ for (const [kind, input, selected] of [
         source.exec(`PRAGMA table_info(${table})`)[0]?.values.map((r) => r[1]),
       );
       const result = source.exec(
-        `SELECT ${columns.map((c) => (available.has(c) ? `"${c}"` : `NULL AS "${c}"`)).join(",")} FROM "${table}"`,
+        `SELECT ${columns.map((c) => (available.has(c) ? `"${c}"` : `NULL AS "${c}"`)).join(",")} FROM "${table}"${table === "Defines" ? " WHERE Name IN ('CULTURE_LEVEL_EXOTIC','CULTURE_LEVEL_FAMILIAR','CULTURE_LEVEL_POPULAR','CULTURE_LEVEL_INFLUENTIAL','CULTURE_LEVEL_DOMINANT')" : ""}`,
       )[0];
       if (!result) throw new Error(`Missing metadata table ${table}`);
       if (table === "Language_en_US")
@@ -88,7 +89,11 @@ for (const [kind, input, selected] of [
       } finally {
         insert.free();
       }
-      const indexed = columns.includes("Tag") ? "Tag" : "Type";
+      const indexed = columns.includes("Tag")
+        ? "Tag"
+        : columns.includes("Name")
+          ? "Name"
+          : "Type";
       target.run(`CREATE INDEX "${table}_lookup" ON "${table}" ("${indexed}")`);
       counts[table] = result.values.length;
     }

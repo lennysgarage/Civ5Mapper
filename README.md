@@ -153,3 +153,7 @@ substituted for extracted game data. Regenerate the world with
 Architecture: `packages/core` contains portable format/rendering logic;
 `packages/cli` handles filesystem access; `packages/web` handles UI and the worker.
 See [NOTICE](NOTICE) for format attribution and [third-party licenses](third_party).
+
+### Tourism influence
+
+Select **Tourism influence** in the browser and choose an **Influence from** empire. The CLI supports `--mode culture --perspective <player-id>` for SVG, PNG and HTML current-state output. Target land is shaded by recorded accumulated tourism divided by target lifetime culture; unknown data is hatched. [Supported layouts, availability and normalized data](docs/cultural-view.md).

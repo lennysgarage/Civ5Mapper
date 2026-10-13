@@ -13,6 +13,7 @@ export function metadataNeeds(world: World) {
       (c) => typeof c.name === "string" && c.name.startsWith("TXT_KEY_"),
     ).length,
     terrain: world.tiles.some((t) => !t.terrain),
+    culture: Boolean(world.culture && !world.culture.thresholds),
     military: Boolean(world.units?.some((u) => u.classificationKnown !== true)),
   };
 }
@@ -42,8 +43,12 @@ export async function enrichBrowserWorld(
   // rosters do not have the save's ruleset identities and cannot be enriched.
   const useDefault =
     inputs.bundledMetadata !== false &&
-    world.source.kind === "save" &&
-    (needs.cityNames > 0 || needs.terrain || needs.military);
+    (world.source.kind === "save" ||
+      (needs.culture &&
+        world.civilizations.every(
+          (c) => c.key && Number.isInteger(c.rulesetId),
+        ))) &&
+    (needs.cityNames > 0 || needs.terrain || needs.military || needs.culture);
   if (!inputs.ruleset && !inputs.localization && !useDefault) return world;
   const url = (name: string) => new URL(name, inputs.assetBase).href;
   const files: Databases = {};

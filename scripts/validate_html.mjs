@@ -274,7 +274,7 @@ try {
     return world.civilizations.filter(c=>c.kind==='city-state' && c.allianceKnown===true && c.ally!==null);
   })()`);
   for (const cityState of alliances) {
-    for (const mode of available) {
+    for (const mode of available.filter((mode) => mode !== "culture")) {
       const result = await evaluate(`(()=>{
         const data=JSON.parse(document.querySelector('#world-data').textContent);
         const minor=${JSON.stringify(cityState)};
@@ -318,13 +318,73 @@ try {
   }
   if (alliances.length)
     passed(
-      "recorded city-state allies highlight in every view and identify their allied empire",
+      "recorded city-state allies highlight in political, physical and army views",
     );
+  if (available.includes("culture")) {
+    const result = await evaluate(`(async()=>{
+      const data=JSON.parse(document.querySelector('#world-data').textContent);
+      const mode=document.querySelector('#mode'); mode.value='culture';mode.dispatchEvent(new Event('change'));
+      const select=document.querySelector('#perspective'), ids=Array.from(select.options).map(o=>Number(o.value));
+      const source=ids.find(id=>id!==Number(select.value)) ?? ids[0];
+      select.value=String(source);select.dispatchEvent(new Event('change'));
+      const target=data.world.culture.players.find(p=>p.alive&&p.playerId!==source&&p.lifetimeCulture!==null&&document.querySelector('#stage path[data-surface="land"][data-owner="'+p.playerId+'"]'));
+      if(!target)throw new Error('No cultural target territory');
+      const path=document.querySelector('#stage path[data-surface="land"][data-owner="'+target.playerId+'"]');
+      path.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+      const influence=data.world.culture.players.find(p=>p.playerId===source).accumulatedInfluence[target.playerId];
+      const percent=target.lifetimeCulture>0?Math.floor(influence*100/target.lifetimeCulture):0;
+      const details=document.querySelector('#details').textContent;
+      const focus=Array.from(document.querySelectorAll('#stage [data-owner]')).every(n=>n.classList.contains('focus-muted')===(n.dataset.owner!==String(target.playerId)));
+      const state=window.civmapperViewer.getState();
+      mode.value='political';mode.dispatchEvent(new Event('change'));
+      window.civmapperViewer.restoreState(state);
+      const restored=Number(select.value)===source&&window.civmapperViewer.getState().perspective===source;
+      const before=path.getAttribute('fill');
+      const live=document.querySelector('#stage path[data-surface="land"][data-owner="'+target.playerId+'"]');
+      const create=URL.createObjectURL,click=HTMLAnchorElement.prototype.click;let blob,filename;
+      URL.createObjectURL=function(value){blob=value;return create.call(this,value)};
+      HTMLAnchorElement.prototype.click=function(){filename=this.download};
+      let xml;
+      try{document.querySelector('#export-svg').click();xml=new DOMParser().parseFromString(await blob.text(),'image/svg+xml')}
+      finally{URL.createObjectURL=create;HTMLAnchorElement.prototype.click=click}
+      return {source,percent,details,focus,restored,selected:Number(select.value),fill:live.getAttribute('fill'),before,filename,
+        exportedFill:xml.querySelector('path[data-surface="land"][data-owner="'+target.playerId+'"]').getAttribute('fill'),
+        legend:xml.querySelector('.culture-legend').textContent,sourceLabel:data.labels[source]};
+    })()`);
+    assert.equal(
+      result.selected,
+      result.source,
+      "target click preserves influence source",
+    );
+    assert.match(result.details, /Accumulated tourism/);
+    assert.ok(result.details.includes(`${result.percent}%`));
+    assert.ok(result.focus, "culture focus excludes city-state allies");
+    assert.ok(
+      result.restored,
+      "culture perspective survives restoring viewer state",
+    );
+    assert.equal(result.fill, result.before);
+    assert.equal(result.exportedFill, result.fill);
+    assert.ok(result.filename.endsWith(`-culture-from-${result.source}.svg`));
+    assert.ok(result.legend.includes(result.sourceLabel));
+    passed(
+      "culture source selection, target details, independent focus, persistence and SVG export",
+    );
+  }
   await evaluate(
     `document.querySelector('#mode').value=${JSON.stringify(initial)};document.querySelector('#mode').dispatchEvent(new Event('change'));document.querySelector('#clear-focus').click()`,
   );
   if (serverURL && /\.civ5save$/i.test(save) && !ruleset && !localization) {
-    assert.deepEqual(available, ["political", "physical", "army"]);
+    assert.ok(
+      ["political", "physical", "army"].every((mode) =>
+        available.includes(mode),
+      ),
+    );
+    assert.ok(
+      available.every((mode) =>
+        ["political", "physical", "army", "culture"].includes(mode),
+      ),
+    );
     const world = await evaluate(
       'JSON.parse(document.querySelector("#world-data").textContent).world',
     );
@@ -577,7 +637,9 @@ try {
         const originals=Array.from(original.querySelectorAll('*')),copies=Array.from(xml.documentElement.querySelectorAll('*'));
         const stylesMatch=originals.every((n,i)=>getComputedStyle(n).display===copies[i].style.display && getComputedStyle(n).opacity===copies[i].style.opacity);
         return {header:Array.from(bytes.slice(0,8)),width:image.width,height:image.height,filename,stylesMatch,
-          clipping:xml.documentElement.getAttribute('viewBox')===original.getAttribute('viewBox'),bytes:png.size,colorCount:colors.size,pngData};
+          clipping:xml.documentElement.getAttribute('viewBox')===original.getAttribute('viewBox'),bytes:png.size,colorCount:colors.size,pngData,
+          perspective:window.civmapperViewer.getState().perspective,
+          cultureFillsMatch:Array.from(original.querySelectorAll('path[data-surface="land"]')).every((n,i)=>n.getAttribute('fill')===xml.querySelectorAll('path[data-surface="land"]')[i].getAttribute('fill'))};
       }finally{URL.createObjectURL=create;HTMLAnchorElement.prototype.click=click;}
     })()`);
     assert.deepEqual(result.header, [137, 80, 78, 71, 13, 10, 26, 10]);
@@ -585,7 +647,18 @@ try {
     assert.ok(result.width > 100 && result.height > 100);
     assert.ok(result.stylesMatch);
     assert.ok(result.clipping);
-    assert.ok(result.filename.endsWith(`-${mode}.png`));
+    assert.ok(
+      result.filename.endsWith(
+        mode === "culture"
+          ? `-culture-from-${result.perspective}.png`
+          : `-${mode}.png`,
+      ),
+    );
+    if (mode === "culture")
+      assert.ok(
+        result.cultureFillsMatch,
+        "PNG preserves current perspective fills",
+      );
     assert.ok(result.colorCount > 4, "PNG includes visible map colors");
     if (reportPath)
       await writeFile(

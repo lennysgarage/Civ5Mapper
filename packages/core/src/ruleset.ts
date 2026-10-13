@@ -154,6 +154,49 @@ export function enrichWorld(input: World, files: Databases): World {
           militaryClassification: "extracted",
         });
       }
+      if (world.culture)
+        world.extraction.fields.cultureThresholds = "unavailable";
+      if (
+        world.culture &&
+        rows(
+          db,
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='Defines'",
+        ).length
+      ) {
+        const names = [
+          "EXOTIC",
+          "FAMILIAR",
+          "POPULAR",
+          "INFLUENTIAL",
+          "DOMINANT",
+        ];
+        const values = names.map(
+          (name) =>
+            rows(db, "SELECT Value FROM Defines WHERE Name=?", [
+              "CULTURE_LEVEL_" + name,
+            ])[0]?.[0],
+        );
+        if (
+          values.every(
+            (n, i) =>
+              Number.isSafeInteger(n) &&
+              n >= 0 &&
+              (i === 0 || n > values[i - 1]),
+          )
+        ) {
+          world.culture.thresholds = {
+            values,
+            source: "ruleset-database",
+            databaseSha256: sha256(files.ruleset).hexdigest(),
+          };
+          world.extraction.fields.cultureThresholds = "extracted";
+        } else {
+          world.extraction.fields.cultureThresholds = "unavailable";
+          world.extraction.warnings.push(
+            "Influence tiers unavailable: matching culture thresholds are incomplete or invalid.",
+          );
+        }
+      }
       world.extraction.fields.terrain = "extracted";
       world.extraction.fields.features = world.tiles.every(
         (t) => "feature" in t,
