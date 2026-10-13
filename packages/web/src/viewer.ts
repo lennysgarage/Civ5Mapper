@@ -1,4 +1,12 @@
 "use strict";
+import {
+  cultureSources,
+  culturePair,
+  cultureTerritory,
+  cultureLegend,
+  cultureExports,
+  cultureLegendSvg,
+} from "../../core/src/culture_present.js";
 export function mountViewer(root: Document = document) {
   const document: any = root;
   const data = JSON.parse(document.getElementById("world-data").textContent);
@@ -6,6 +14,15 @@ export function mountViewer(root: Document = document) {
   const stage = document.getElementById("stage");
   const modeSelect = document.getElementById("mode");
   const empireSelect = document.getElementById("empire");
+  const perspectiveSelect = document.getElementById("perspective");
+  let perspective = data.perspective ?? null;
+  for (const id of cultureSources(world)) {
+    const option = document.createElement("option");
+    option.value = String(id);
+    option.textContent = data.labels[id] || `Player ${id}`;
+    perspectiveSelect.append(option);
+  }
+  perspectiveSelect.value = perspective === null ? "" : String(perspective);
   const details = document.getElementById("details");
   const cityById = new Map<string, any>(
     world.cities.map((c) => [String(c.id), c]),
@@ -39,7 +56,7 @@ export function mountViewer(root: Document = document) {
   let svg: any,
     base: any,
     view: any,
-    selected = "",
+    selected = perspective === null ? "" : String(perspective),
     drag: any = null,
     ignoreClick = false;
   const label = (owner) => data.labels[String(owner)] || "Unknown empire";
@@ -142,17 +159,29 @@ export function mountViewer(root: Document = document) {
     if (String(owner) !== "" && !playerVisible(owner)) return;
     selected = String(owner);
     empireSelect.value = selected;
+    if (modeSelect.value === "culture") {
+      perspective =
+        selected !== "" && cultureSources(world).includes(Number(selected))
+          ? Number(selected)
+          : null;
+      perspectiveSelect.value = perspective === null ? "" : String(perspective);
+      applyCulture();
+    }
     const allies = world.civilizations
       .filter((c) => selected !== "" && String(knownAlly(c)?.id) === selected)
       .sort((a, b) => label(a.id).localeCompare(label(b.id)) || a.id - b.id);
     const focusedOwners = new Set([
       selected,
-      ...allies.map((c) => String(c.id)),
+      ...(modeSelect.value === "culture" ? [] : allies).map((c) =>
+        String(c.id),
+      ),
     ]);
     for (const node of svg.querySelectorAll("[data-owner]")) {
       node.classList.toggle(
         "focus-muted",
-        selected !== "" && !focusedOwners.has(node.dataset.owner),
+        modeSelect.value !== "culture" &&
+          selected !== "" &&
+          !focusedOwners.has(node.dataset.owner),
       );
     }
     for (const card of document.querySelectorAll(".empire-card")) {
@@ -173,6 +202,8 @@ export function mountViewer(root: Document = document) {
         ["Owned tiles", owned],
       ];
       rows.push(...allianceRows(selected));
+      if (modeSelect.value === "culture")
+        rows.push(...cultureRows(Number(selected)));
       if (civById.get(selected)?.kind === "major")
         rows.push([
           "Known city-state allies",
@@ -193,9 +224,25 @@ export function mountViewer(root: Document = document) {
     } else {
       for (const node of svg.querySelectorAll(".search-target"))
         node.classList.remove("search-target");
-      showDetails("Map details", [
-        ["View", modeSelect.selectedOptions[0].textContent],
-      ]);
+      const rows = [["View", modeSelect.selectedOptions[0].textContent]];
+      if (modeSelect.value === "culture") {
+        rows.push([
+          "Showing",
+          "Total accumulated tourism exported by each empire",
+        ]);
+        const ranked = world.civilizations
+          .filter(
+            (c) =>
+              c.kind === "major" &&
+              world.culture?.players.some(
+                (p) => p.playerId === c.id && p.alive,
+              ),
+          )
+          .map((c) => ({ id: c.id, total: cultureExports(world, c.id).total }))
+          .sort((a, b) => (b.total ?? -1) - (a.total ?? -1) || a.id - b.id);
+        rows.push(...ranked.map((c) => [label(c.id), c.total ?? "Unknown"]));
+      }
+      showDetails("Map details", rows);
     }
     status(
       selected === ""
@@ -326,6 +373,100 @@ export function mountViewer(root: Document = document) {
     updateView();
     status("Map fitted to window");
   }
+  function cultureRows(target) {
+    if (civById.get(String(target))?.kind !== "major")
+      return [["Tourism influence", "Not a tourism target"]];
+
+    if (perspective === null) {
+      const exports = cultureExports(world, target);
+      return [
+        ["Total accumulated tourism exported", exports.total ?? "Unknown"],
+        ["Target totals known", `${exports.knownTargets}/${exports.targets}`],
+      ];
+    }
+    if (target === perspective) {
+      const targets = (world.culture?.players ?? [])
+        .filter((p) => p.alive && p.playerId !== perspective)
+        .map((p) => ({ p, pair: culturePair(world, perspective, p.playerId) }))
+        .sort(
+          (a, b) =>
+            (b.pair.influence ?? -1) - (a.pair.influence ?? -1) ||
+            a.p.playerId - b.p.playerId,
+        );
+      return [
+        ["Showing", "Outgoing accumulated tourism influence"],
+        ...targets.map(({ p, pair }) => [
+          label(p.playerId),
+          pair.influence === null
+            ? "Unknown"
+            : `${pair.influence} accumulated tourism · ${pair.percent === null ? "Unknown" : pair.percent + "%"} of lifetime culture`,
+        ]),
+      ];
+    }
+    const pair = culturePair(world, perspective, target);
+    return [
+      ["Influence from", label(perspective)],
+      ["Accumulated tourism", pair.influence ?? "Unknown"],
+      ["Target lifetime culture", pair.lifetime ?? "Unknown"],
+      [
+        "Influence / lifetime culture",
+        pair.percent === null ? "Unknown" : `${pair.percent}%`,
+      ],
+      [
+        "Contact",
+        pair.contact === null ? "Unknown" : pair.contact ? "Met" : "Unmet",
+      ],
+      [
+        "Game influence level",
+        pair.level ?? (pair.contact === false ? "Unmet" : "Unavailable"),
+      ],
+    ];
+  }
+  function applyCulture() {
+    document.getElementById("culture-controls").hidden =
+      modeSelect.value !== "culture";
+    if (modeSelect.value !== "culture") return;
+    for (const node of svg.querySelectorAll(
+      'path[data-surface="land"][data-owner]',
+    )) {
+      const owner =
+        node.dataset.owner === "unowned" ? null : Number(node.dataset.owner);
+      const territory = cultureTerritory(world, perspective, owner);
+      node.setAttribute("fill", territory.fill);
+      const isSource = perspective !== null && owner === perspective;
+      node.dataset.tourismRole = isSource ? "source" : "target";
+      for (const [attribute, value] of Object.entries({
+        stroke: "#252525",
+        "stroke-width": "2.5",
+        "stroke-dasharray": "6 3",
+      })) {
+        if (isSource) node.setAttribute(attribute, value);
+        else node.removeAttribute(attribute);
+      }
+      node.querySelector("title").textContent = territory.description;
+    }
+    const legend = svg.querySelector(".culture-legend");
+    if (legend)
+      legend.innerHTML = cultureLegendSvg(
+        world,
+        perspective,
+        Number(legend.dataset.x),
+        Number(legend.dataset.y),
+        Number(legend.dataset.width),
+      );
+    document.querySelector('label[for="empire"]').textContent =
+      "Select an empire";
+    document.getElementById("clear-focus").textContent = "Show overview";
+    svg.setAttribute("aria-label", cultureLegend(world, perspective));
+  }
+  perspectiveSelect.addEventListener("change", () => {
+    focusEmpire(perspectiveSelect.value);
+    status(
+      perspective === null
+        ? "Accumulated tourism overview"
+        : `Influence from ${label(perspective)}`,
+    );
+  });
   function setMode(mode) {
     const template = document.getElementById(`map-${mode}`);
     if (!template) return;
@@ -347,6 +488,10 @@ export function mountViewer(root: Document = document) {
       : { ...base };
     updateView();
     modeSelect.value = mode;
+    document.querySelector('label[for="empire"]').textContent =
+      "Highlight an empire";
+    document.getElementById("clear-focus").textContent = "Clear highlight";
+    applyCulture();
     for (const node of svg.querySelectorAll(
       ".army-marker,.capital-marker,.city-marker",
     )) {
@@ -405,7 +550,9 @@ export function mountViewer(root: Document = document) {
         for (const property of properties)
           copies[index].style.setProperty(
             property,
-            computed.getPropertyValue(property),
+            computed
+              .getPropertyValue(property)
+              .replace(/url\(["']?[^)"']*#([^"')]+)["']?\)/g, "url(#$1)"),
           );
       });
       const bounds = stage.getBoundingClientRect();
@@ -445,7 +592,7 @@ export function mountViewer(root: Document = document) {
       downloadURL = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = downloadURL;
-      link.download = `civmapper-turn-${world.game.turn ?? "unknown"}-${exportMode}.png`;
+      link.download = `civmapper-turn-${world.game.turn ?? "unknown"}-${exportMode}${exportMode === "culture" ? (perspective === null ? "-overview" : `-from-${perspective}`) : ""}.png`;
       document.body.append(link);
       link.click();
       link.remove();
@@ -540,6 +687,7 @@ export function mountViewer(root: Document = document) {
       ["Position", `(${city.x}, ${city.y})`],
     ];
     rows.push(...allianceRows(city.owner));
+    if (modeSelect.value === "culture") rows.push(...cultureRows(city.owner));
     if (city.capital === true)
       rows.push([
         "Capital",
@@ -677,7 +825,7 @@ export function mountViewer(root: Document = document) {
     );
     const a = document.createElement("a");
     a.href = url;
-    a.download = `civmapper-turn-${world.game.turn ?? "unknown"}-${modeSelect.value}.svg`;
+    a.download = `civmapper-turn-${world.game.turn ?? "unknown"}-${modeSelect.value}${modeSelect.value === "culture" ? (perspective === null ? "-overview" : `-from-${perspective}`) : ""}.svg`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   });
@@ -685,12 +833,21 @@ export function mountViewer(root: Document = document) {
   return {
     getState: () => ({
       mode: modeSelect.value,
+      perspective,
       layers: { ...data.layers },
       playerGroups: { ...playerGroups },
       selected,
       view: { ...view },
     }),
     restoreState: (state) => {
+      if (
+        state.perspective === null ||
+        cultureSources(world).includes(state.perspective)
+      ) {
+        perspective = state.perspective;
+        perspectiveSelect.value =
+          perspective === null ? "" : String(perspective);
+      }
       Object.assign(data.layers, state.layers);
       for (const [key, check] of Object.entries(checks))
         (check as any).checked = data.layers[key];

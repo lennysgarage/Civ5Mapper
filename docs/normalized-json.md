@@ -177,7 +177,7 @@ Field statuses are `unitPositions: extracted`, `unitTypes: partial` and
 `extracted` after every referenced type hash resolves. Coverage is the current
 plot-reference lists; off-map/trade-manager objects are not traversed.
 
-Renderer `mode` is separate from style: political (default), physical, or army.
+Renderer `mode` is separate from style: political (default), physical, army, or culture.
 Physical mode requires resolved terrain names and uses `terrainColors`
 (type-to-hex overrides) plus `unknownTerrainColor` for explicitly unmapped mod
 terrain. Army mode requires extracted positions and known military
@@ -206,3 +206,49 @@ retained. These filters never remove an empire with counted military units.
 Totals are unit counts, not strength. Summary size grows with the number of
 empires/categories and leaves map coordinates unchanged. Both settings require
 army mode. CLI equivalents are `--army-icons detailed` and `--military-summary`.
+
+## Optional current tourism influence
+
+Schema `0.1` adds optional `culture: { turn, players, thresholds? }`. The snapshot
+turn must match `game.turn`; absent culture means unavailable, never zero. Each
+player has a major-civilization `playerId`, explicit boolean `alive`, nullable
+whole-unit `lifetimeCulture`, optional nullable `storedCulture`, and
+`accumulatedInfluence` mapping target major player IDs to whole-unit accumulated
+tourism totals. Nonnegative totals are limited to the SDK signed 32-bit range
+(0–2147483647), keeping derived integer percentages exact. Missing/null totals
+remain unknown. A record for an inactive player never makes it an eligible source.
+
+Optional `contact` maps target player IDs to verified team-contact booleans;
+missing/null means unknown. Optional `evidence` records culture, player-prefix,
+and following-record boundaries, serialized version and the raw storage scale.
+The supported empirical six- and seven-yield player layouts store player
+culture in hundredths and accumulated influence in whole units. Normalization
+follows the verified getter’s integer division by 100; profile names do not
+imply arbitrary vanilla/mod compatibility.
+
+`thresholds` contains five strictly increasing integer `values` in exotic,
+familiar, popular, influential, dominant order, `source: "ruleset-database"`,
+and `databaseSha256`. The matching database supplies `CULTURE_LEVEL_*` defines.
+Exact game levels additionally require verified contact. The binary extractor
+currently leaves contact unavailable, so real-save renders show recorded numeric
+ratios with unknown contact and no exact tier claim.
+
+Independent extraction statuses are `tourismInfluence`, `cultureLifetime`,
+`cultureContact` and `cultureThresholds`. Partial records remain usable per pair;
+missing targets are hatched distinctly from verified zero. The culture mode
+selects a source and shades target major land territories on a fixed 0–200%
+ratio scale (capped colors, uncapped numbers). The source keeps its empire color and dashed outline. City-states, unowned
+land and verified inactive targets are neutral; owned water keeps its water
+palette. A zero lifetime denominator follows the game's zero percentage.
+CLI `--mode culture` defaults to an overview shading each major empire’s own
+territory by its summed accumulated tourism exported to other major empires,
+including eliminated targets. The shared scale runs from zero to the largest
+known total in the current snapshot. Self and city-states are excluded. Optional `--perspective <player-id>` shows
+that empire’s outgoing influence. Interactive selection chooses the source;
+clearing selection returns to the overview. Missing pairs leave a sum unknown and hatched. Known zero totals use the light
+end of the scale; lifetime culture is not needed for overview totals.
+
+Current culture is removed when preparing replay worlds from a base save. Replay
+events do not supply directed culture snapshots, and current totals are never
+reused historically. See [tourism influence decoding and validation](cultural-view.md)
+for supported saves, boundary checks, availability and examples.

@@ -115,13 +115,29 @@ function extractionOptions(c: Command) {
 function renderOptions(c: Command) {
   return c
     .option("--style <name>", "atlas, parchment, minimalist or custom JSON")
-    .option("--mode <mode>", "political, physical or army", "political")
+    .option(
+      "--mode <mode>",
+      "political, physical, army or culture",
+      "political",
+    )
+    .option(
+      "--perspective <player-id>",
+      "source major empire for tourism influence",
+    )
     .option("--army-icons <icons>", "domain or detailed")
     .option("--military-summary");
 }
 function checkOptions(o: any) {
-  if (!["political", "physical", "army"].includes(o.mode))
+  if (!["political", "physical", "army", "culture"].includes(o.mode))
     throw new Error("unsupported render mode");
+  if (
+    o.mode === "culture" &&
+    o.perspective !== undefined &&
+    !/^\d+$/.test(o.perspective)
+  )
+    throw new Error("--perspective must be a nonnegative player ID");
+  if (o.perspective !== undefined && o.mode !== "culture")
+    throw new Error("--perspective requires --mode culture");
   if ((o.armyIcons || o.militarySummary) && o.mode !== "army")
     throw new Error("--army-icons and --military-summary require --mode army");
   if (o.armyIcons && !["domain", "detailed"].includes(o.armyIcons))
@@ -216,9 +232,19 @@ async function renderInput(input: string, o: any, save: boolean) {
   const extension = path.extname(o.output).toLowerCase();
   let result: any;
   if ([".html", ".htm"].includes(extension))
-    result = renderHtml(world, await htmlAssets(), style, o.mode);
+    result = renderHtml(
+      world,
+      await htmlAssets(),
+      style,
+      o.mode,
+      o.perspective === undefined ? undefined : Number(o.perspective),
+    );
   else {
-    const svg = renderSvg(world, style, { mode: o.mode });
+    const svg = renderSvg(world, style, {
+      mode: o.mode,
+      perspective:
+        o.perspective === undefined ? undefined : Number(o.perspective),
+    });
     if (extension === ".svg") result = svg;
     else if (extension === ".png") {
       const scale = Number(o.scale);

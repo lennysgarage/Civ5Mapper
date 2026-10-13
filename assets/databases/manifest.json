@@ -4,14 +4,15 @@
   "files": {
     "ruleset": {
       "filename": "ruleset.db",
-      "bytes": 163840,
-      "sha256": "87b9bb25c93408110123bc6f01d670113a7dac9546e14925de78e572c8e9ad83",
+      "bytes": 172032,
+      "sha256": "7266fa7f00f1023c48fb3d3462ad1530cfcc2989bde75f32408f3bd182b14bcb",
       "sourceSha256": "12f9fe10637fd8d3ed0ed011431480e6a10d21c56c5ca1ee52ffc5e002c6d420",
       "rows": {
         "Civilizations": 115,
         "MinorCivilizations": 58,
         "Terrains": 9,
         "Features": 25,
+        "Defines": 5,
         "Routes": 2,
         "PlayerColors": 180,
         "Colors": 368,

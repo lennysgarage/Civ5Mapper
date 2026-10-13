@@ -153,3 +153,7 @@ substituted for extracted game data. Regenerate the world with
 Architecture: `packages/core` contains portable format/rendering logic;
 `packages/cli` handles filesystem access; `packages/web` handles UI and the worker.
 See [NOTICE](NOTICE) for format attribution and [third-party licenses](third_party).
+
+### Tourism influence
+
+Select **Tourism influence** to see each empire’s own territory shaded by total accumulated tourism exported on a shared scale. Click an empire for its outgoing influence and ranked totals; clear selection to return to the overview. The CLI supports `--mode culture` for the overview and optional `--perspective <player-id>` for SVG, PNG and HTML current-state output. Selected-source shading shows recorded tourism divided by target lifetime culture; unknown data is hatched. [Supported layouts, availability and normalized data](docs/cultural-view.md).

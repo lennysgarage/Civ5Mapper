@@ -169,6 +169,20 @@ export function prepare(
   if (compat.truth(base !== null)) {
     validate_world(base);
     world = compat.clone(base);
+    if (compat.has(world, "culture")) {
+      compat.del(world, "culture");
+      for (const field of [
+        "cultureLifetime",
+        "tourismInfluence",
+        "cultureContact",
+        "cultureThresholds",
+      ])
+        compat.put(
+          compat.get(compat.get(world, "extraction"), "fields"),
+          field,
+          "unavailable",
+        );
+    }
     if (
       compat.truth(
         compat.and(

@@ -1,3 +1,4 @@
+import { extractCulture } from "./culture.js";
 // Direct TypeScript port of validated algorithms. MIT; see NOTICE.
 import * as compat from "./compat.js";
 import { ParseError, Reader, inspect_bytes } from "./save.js";
@@ -1151,5 +1152,7 @@ export function extract_bytes(
   if (compat.truth(include_units)) {
     extract_units(world, state, name);
   }
-  return world;
+  const normalized = compat.unwrap(world);
+  extractCulture(normalized, state);
+  return compat.wrapJson(normalized);
 }
