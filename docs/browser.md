@@ -16,14 +16,6 @@ headers are required: WASM is single-threaded and uses provided byte buffers.
 Vite preview is for local verification rather than production hosting, as
 explained in the [Vite static deployment guide](https://vite.dev/guide/static-deploy.html).
 
-## GitHub Pages
-
-Use Pages with GitHub Actions, then manually run `.github/workflows/pages.yml`.
-It installs locked dependencies, checks types/tests, builds and uploads only
-`dist/web`. This repository adds the workflow but does not activate hosting or
-publish anything. No source saves enter the deployment. Compact metadata
-databases in `assets/databases/` are included.
-
 ## Cloudflare Pages
 
 Connect the repository with build command **`npm run build`**, output directory

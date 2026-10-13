@@ -59,8 +59,7 @@ licensed font assets and default metadata, with relative URLs for both root and 
 hosting. No application server or API is deployed. Use HTTP(S) for this app;
 individual downloaded map HTML files also work directly from `file://`.
 
-[Hosting instructions](docs/browser.md) cover GitHub Pages and Cloudflare Pages.
-The provided GitHub Pages workflow runs only when manually triggered.
+[Hosting instructions](docs/browser.md) cover Cloudflare Pages and Workers static hosting.
 
 ## CLI
 
