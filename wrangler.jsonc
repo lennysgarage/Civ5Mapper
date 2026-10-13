@@ -1,5 +1,5 @@
 {
-  "name": "cvi5mapper",
+  "name": "civ5mapper",
   "compatibility_date": "2026-10-12",
   "assets": {
     "directory": "./dist/web"

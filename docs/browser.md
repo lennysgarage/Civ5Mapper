@@ -30,7 +30,7 @@ If the dashboard asks for a **deploy command**, you are using Workers Builds.
 Use the repository root, build command **`npm run build`**, and deploy command
 **`npx wrangler deploy`**. The root `wrangler.jsonc` explicitly points Wrangler
 at `dist/web`, avoiding application detection at the npm workspace root. Set
-its `name` to the Worker name selected in the dashboard (currently: `cvi5mapper`).
+its `name` to the Worker name selected in the dashboard (currently: `civ5mapper`).
 This deploys static files only; save decoding still runs in the browser.
 No Worker script or backend is required. Pages hosting above remains supported.
 
