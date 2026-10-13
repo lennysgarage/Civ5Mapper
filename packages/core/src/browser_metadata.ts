@@ -63,6 +63,7 @@ export async function enrichBrowserWorld(
     ]);
     await initRuleset(wasm);
     files.ruleset = ruleset;
+    files.religionMetadataTrusted = Boolean(inputs.ruleset);
     files.localization = localization;
     return enrichWorld(world, files);
   } catch (error) {

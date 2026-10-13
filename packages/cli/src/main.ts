@@ -115,12 +115,16 @@ function extractionOptions(c: Command) {
 function renderOptions(c: Command) {
   return c
     .option("--style <name>", "atlas, parchment, minimalist or custom JSON")
-    .option("--mode <mode>", "political, physical or army", "political")
+    .option(
+      "--mode <mode>",
+      "political, physical, army or religion",
+      "political",
+    )
     .option("--army-icons <icons>", "domain or detailed")
     .option("--military-summary");
 }
 function checkOptions(o: any) {
-  if (!["political", "physical", "army"].includes(o.mode))
+  if (!["political", "physical", "army", "religion"].includes(o.mode))
     throw new Error("unsupported render mode");
   if ((o.armyIcons || o.militarySummary) && o.mode !== "army")
     throw new Error("--army-icons and --military-summary require --mode army");

@@ -3,6 +3,10 @@ import * as compat from "./compat.js";
 import { ParseError, Reader, inspect_bytes } from "./save.js";
 import { add_alliances } from "./diplomacy.js";
 import { add_capitals } from "./capitals.js";
+import {
+  extractCityReligions,
+  extractReligionCatalog,
+} from "./religion_extract.js";
 import { extract_units } from "./units.js";
 export let FEATURE_HASHES: any, FEATURE_KEYS: any, PROFILES: any;
 /** Current-state extraction with validated, explicitly limited layout profiles.
@@ -193,7 +197,9 @@ export function read_plot(r: any, profile: any): any {
     city_owner = __v14[0];
     city_id = __v14[1];
   }
-  r.take(32);
+  r.take(24);
+  const territory_owner = r.unpack("i"),
+    territory_id = r.unpack("i");
   r.take(
     compat.add(
       compat.add(compat.mul(compat.get(profile, "yields"), 2), 320),
@@ -454,6 +460,20 @@ export function read_plot(r: any, profile: any): any {
       ]),
     );
   }
+  const territory_valid =
+    (territory_owner === -1 && territory_id === -1) ||
+    (territory_owner >= 0 && territory_owner < 64 && territory_id >= 0);
+  compat.put(tile, "territoryCityKnown", territory_valid);
+  compat.put(
+    tile,
+    "territoryCityReference",
+    territory_valid && territory_owner !== -1
+      ? compat.dict([
+          ["owner", territory_owner],
+          ["localId", territory_id],
+        ])
+      : null,
+  );
   return [
     tile,
     compat.dict([
@@ -1107,6 +1127,56 @@ export function extract_bytes(
       "Zlib end marker absent; decoded grid and city aggregates passed, later sections not validated.",
     );
   }
+
+  const cityAssignments = new Set(
+    compat
+      .iter(cities)
+      .map(
+        (city: any) =>
+          `${compat.get(city, "owner")}:${compat.get(city, "localId")}`,
+      ),
+  );
+  let invalidAssignments = 0;
+  for (const t of compat.iter(tiles)) {
+    const ref = compat.get(t, "territoryCityReference");
+    if (
+      compat.get(t, "territoryCityKnown") !== true ||
+      (ref &&
+        (compat.get(ref, "owner") !== compat.get(t, "owner") ||
+          !cityAssignments.has(
+            `${compat.get(ref, "owner")}:${compat.get(ref, "localId")}`,
+          )))
+    ) {
+      invalidAssignments++;
+      compat.put(t, "territoryCityKnown", false);
+      compat.put(t, "territoryCityReference", null);
+    }
+  }
+  compat.put(
+    fields,
+    "territoryCityAssignment",
+    invalidAssignments ? "partial" : "extracted",
+  );
+  const withReligion = extractCityReligions(
+    compat.unwrap(world),
+    state,
+    compat.get(compat.get(PROFILES, name), "yields"),
+  );
+  extractReligionCatalog(withReligion, state);
+  compat.put(world, "cities", compat.wrapJson(withReligion.cities));
+  if (withReligion.religions)
+    compat.put(world, "religions", compat.wrapJson(withReligion.religions));
+  compat.update(fields, compat.wrapJson(withReligion.extraction.fields));
+  compat.put(
+    compat.get(world, "extraction"),
+    "warnings",
+    compat.wrapJson(withReligion.extraction.warnings),
+  );
+  if (invalidAssignments)
+    compat.append(
+      compat.get(compat.get(world, "extraction"), "warnings"),
+      `${invalidAssignments} saved territory city references could not be validated; assignments remain unknown.`,
+    );
 
   add_alliances(world, state, compat.get(compat.get(PROFILES, name), "yields"));
 

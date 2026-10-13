@@ -1,4 +1,9 @@
-"use strict";
+import {
+  religionName,
+  religiousMajority,
+  cityReligionName,
+} from "../../core/src/religion.js";
+("use strict");
 export function mountViewer(root: Document = document) {
   const document: any = root;
   const data = JSON.parse(document.getElementById("world-data").textContent);
@@ -29,6 +34,8 @@ export function mountViewer(root: Document = document) {
   const layers = {
     armies: ["Armies", ".army-marker"],
     cities: ["Cities", ".capital-marker,.city-marker"],
+    religionTerritories: ["Assigned-city religion", ".religion-territory"],
+    holyCities: ["Holy cities", ".holy-city-marker"],
     roads: ["Roads", ".route"],
     rivers: ["Rivers", ".river"],
     cityLabels: ["City labels", ".city-label,.city-state-label"],
@@ -70,6 +77,7 @@ export function mountViewer(root: Document = document) {
       rows.push(["Allied since turn", civ.allianceSinceTurn]);
     return rows;
   }
+  const religionLabel = (id) => religionName(world, id);
   const status = (text) => {
     document.getElementById("status").textContent = text;
   };
@@ -549,7 +557,29 @@ export function mountViewer(root: Document = document) {
       ]);
     if (city.population !== undefined && city.population !== null)
       rows.push(["Population", city.population]);
-    showDetails(city.name, rows);
+    rows.push([
+      "Religion",
+      city.religionKnown === true ? cityReligionName(world, city) : "Unknown",
+    ]);
+    if (city.religionKnown === true) {
+      const holy = city.religions.filter((r) => r.holyCity);
+      rows.push([
+        "Holy city",
+        holy.length
+          ? holy.map((r) => religionLabel(r.religionId)).join(", ")
+          : "No",
+      ]);
+    }
+    showDetails(
+      city.name,
+      rows,
+      city.religionKnown === true
+        ? city.religions.map(
+            (r) =>
+              `${r.religionId === -1 ? "Unaffiliated" : religionLabel(r.religionId)}: ${r.followers} followers; saved pressure ${r.pressure}`,
+          )
+        : [],
+    );
     status(`Selected ${city.name}`);
   }
   function activate(target) {

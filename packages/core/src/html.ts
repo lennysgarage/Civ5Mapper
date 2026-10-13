@@ -44,7 +44,7 @@ export function renderHtml(
   const config = { ...DEFAULT_STYLE, ...style },
     variants: any = {},
     unavailable: any = {};
-  for (const view of ["political", "physical", "army"]) {
+  for (const view of ["political", "physical", "army", "religion"]) {
     const settings = {
       ...config,
       showCities: true,
@@ -88,6 +88,7 @@ export function renderHtml(
     "civilizations",
     "tiles",
     "cities",
+    "religions",
   ])
     data[k] = world[k];
   if (world.units)
@@ -108,6 +109,8 @@ export function renderHtml(
     layers: {
       armies: true,
       cities: config.showCities,
+      religionTerritories: true,
+      holyCities: true,
       roads: config.showRoads,
       rivers: config.showRivers,
       cityLabels: config.showCities,
@@ -123,7 +126,7 @@ export function renderHtml(
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CivMapper · ${title}</title><style>${assets.css}</style></head><body><header><div><strong>CivMapper</strong><span>${title}</span></div><label>View <select id="mode">${["political", "physical", "army"].map((v) => `<option value="${v}"${variants[v] ? "" : " disabled"}>${{ political: "Political", physical: "Physical terrain", army: "Army" }[v]}</option>`).join("")}</select></label><nav aria-label="Map navigation"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="fit">Fit map</button><button id="export-png">Export PNG</button><button id="export-svg">Export SVG</button></nav></header><main><section id="stage" tabindex="0" aria-label="Interactive map. Drag to pan; scroll to zoom."></section><aside><section><h1>Explore the world</h1><p class="hint">Drag to pan · scroll to zoom · click a city or unit</p><label for="empire">Highlight an empire</label><select id="empire"><option value="">All empires</option></select><button id="clear-focus">Clear highlight</button></section><section><h2>Player groups</h2><div id="player-filters"></div><p class="hint">Human includes current human slots and retained player names after AI takeover. City-states and unknown groups stay visible.</p></section><section><h2>Layers</h2><div id="layers"></div></section><section><h2>Find a city</h2><input id="search" type="search" aria-label="City name" placeholder="Search cities…" autocomplete="off"><div id="search-results" aria-live="polite"></div></section><section id="details" aria-live="polite"><h2>Map details</h2><p>Select a city, army marker or territory.</p></section><section><h2 id="summary-title">Empires</h2><div id="summary"></div></section><details class="availability"><summary>Available views</summary><div id="availability"></div></details><p class="hint">Deterministic geography · current save data</p></aside></main><div id="status" class="visually-hidden" role="status"></div><noscript>${variants[mode]}</noscript>${Object.entries(
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CivMapper · ${title}</title><style>${assets.css}</style></head><body><header><div><strong>CivMapper</strong><span>${title}</span></div><label>View <select id="mode">${["political", "physical", "army", "religion"].map((v) => `<option value="${v}"${variants[v] ? "" : " disabled"}>${{ political: "Political", physical: "Physical terrain", army: "Army", religion: "Religion" }[v]}</option>`).join("")}</select></label><nav aria-label="Map navigation"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="fit">Fit map</button><button id="export-png">Export PNG</button><button id="export-svg">Export SVG</button></nav></header><main><section id="stage" tabindex="0" aria-label="Interactive map. Drag to pan; scroll to zoom."></section><aside><section><h1>Explore the world</h1><p class="hint">Drag to pan · scroll to zoom · click a city or unit</p><label for="empire">Highlight an empire</label><select id="empire"><option value="">All empires</option></select><button id="clear-focus">Clear highlight</button></section><section><h2>Player groups</h2><div id="player-filters"></div><p class="hint">Human includes current human slots and retained player names after AI takeover. City-states and unknown groups stay visible.</p></section><section><h2>Layers</h2><div id="layers"></div></section><section><h2>Find a city</h2><input id="search" type="search" aria-label="City name" placeholder="Search cities…" autocomplete="off"><div id="search-results" aria-live="polite"></div></section><section id="details" aria-live="polite"><h2>Map details</h2><p>Select a city, army marker or territory.</p></section><section><h2 id="summary-title">Empires</h2><div id="summary"></div></section><details class="availability"><summary>Available views</summary><div id="availability"></div></details><p class="hint">Deterministic geography · current save data</p></aside></main><div id="status" class="visually-hidden" role="status"></div><noscript>${variants[mode]}</noscript>${Object.entries(
     variants,
   )
     .map(([view, svg]) => `<template id="map-${view}">${svg}</template>`)

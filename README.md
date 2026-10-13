@@ -153,3 +153,17 @@ substituted for extracted game data. Regenerate the world with
 Architecture: `packages/core` contains portable format/rendering logic;
 `packages/cli` handles filesystem access; `packages/web` handles UI and the worker.
 See [NOTICE](NOTICE) for format attribution and [third-party licenses](third_party).
+
+Religion maps are available in the browser's View selector and in the CLI:
+
+```sh
+civmapper render-save game.Civ5Save --mode religion --output religion.svg
+civmapper render examples/synthetic-religion.json --mode religion --output religion.html
+```
+
+City circles show the current religious majority; a diamond marks holy status
+independently. Land colors follow the city's saved territory assignment. Gray
+means unknown. The view is enabled only when city religion records are known;
+unsupported save structures and replays retain the other available views.
+Supply matching ruleset/localization databases for mod names. Bundled religion
+labels use default ID mappings, and verified saved custom names take precedence.

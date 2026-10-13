@@ -324,10 +324,17 @@ try {
     `document.querySelector('#mode').value=${JSON.stringify(initial)};document.querySelector('#mode').dispatchEvent(new Event('change'));document.querySelector('#clear-focus').click()`,
   );
   if (serverURL && /\.civ5save$/i.test(save) && !ruleset && !localization) {
-    assert.deepEqual(available, ["political", "physical", "army"]);
     const world = await evaluate(
       'JSON.parse(document.querySelector("#world-data").textContent).world',
     );
+    assert.deepEqual(available, [
+      "political",
+      "physical",
+      "army",
+      ...(world.cities.some((c) => c.religionKnown === true)
+        ? ["religion"]
+        : []),
+    ]);
     assert.ok(world.cities.every((c) => !c.name.startsWith("TXT_KEY_")));
     assert.ok(world.tiles.every((t) => typeof t.terrain === "string"));
     assert.ok(world.units.every((u) => u.classificationKnown === true));
@@ -409,6 +416,60 @@ try {
       await evaluate('document.querySelector("[data-layer=armies]").click()');
       passed("army layer toggle");
     }
+  }
+  if (available.includes("religion")) {
+    await evaluate(
+      'document.querySelector("#mode").value="religion";document.querySelector("#mode").dispatchEvent(new Event("change"));document.querySelector("#clear-focus").click()',
+    );
+    const religion = await evaluate(`(()=>{
+      const w=JSON.parse(document.querySelector('#world-data').textContent).world;
+      const markers=Array.from(document.querySelectorAll('#stage .religion-marker'));
+      const holy=document.querySelectorAll('#stage .holy-city-marker').length;
+      const expectedHoly=w.cities.filter(c=>c.religionKnown===true&&c.religions.some(r=>r.holyCity)).length;
+      const paths=Array.from(document.querySelectorAll('#stage .religion-territory'));
+      markers[0].dispatchEvent(new MouseEvent('click',{bubbles:true}));
+      return {markers:markers.length,cities:w.cities.length,holy,expectedHoly,
+        assigned:paths.filter(p=>p.dataset.religionId!=='unknown').length,
+        legends:document.querySelectorAll('#stage .religion-legend').length,
+        details:document.querySelector('#details').textContent};
+    })()`);
+    assert.equal(religion.markers, religion.cities);
+    assert.equal(religion.holy, religion.expectedHoly);
+    assert.ok(religion.assigned > 0);
+    assert.ok(religion.legends > 0);
+    assert.match(religion.details, /Religion/);
+    assert.match(religion.details, /followers/);
+    passed(
+      "religion markers, exact assigned territories, holy status and city details",
+    );
+    for (const [layer, selector] of [
+      ["religionTerritories", ".religion-territory"],
+      ["holyCities", ".holy-city-marker"],
+    ]) {
+      if (layer === "holyCities" && !religion.holy) continue;
+      await evaluate(`document.querySelector('[data-layer=${layer}]').click()`);
+      assert.equal(
+        await evaluate(
+          `Array.from(document.querySelectorAll('#stage ${selector}')).every(n=>getComputedStyle(n).display==='none')`,
+        ),
+        true,
+      );
+      await evaluate(`document.querySelector('[data-layer=${layer}]').click()`);
+    }
+    const svg = await evaluate(`(async()=>{
+      const create=URL.createObjectURL,click=HTMLAnchorElement.prototype.click;let blob;
+      URL.createObjectURL=b=>{blob=b;return create.call(URL,b)};
+      HTMLAnchorElement.prototype.click=function(){};
+      try{document.querySelector('#export-svg').click();return await blob.text();}
+      finally{URL.createObjectURL=create;HTMLAnchorElement.prototype.click=click;}
+    })()`);
+    assert.match(svg, /religion-territory/);
+    assert.match(svg, /religion-marker/);
+    if (religion.holy) assert.match(svg, /holy-city-marker/);
+    passed("religion layer toggles and SVG download");
+    await evaluate(
+      `document.querySelector('#mode').value=${JSON.stringify(initial)};document.querySelector('#mode').dispatchEvent(new Event('change'));document.querySelector('#clear-focus').click()`,
+    );
   }
   const box = await evaluate(
     'document.querySelector("#stage svg").getAttribute("viewBox")',

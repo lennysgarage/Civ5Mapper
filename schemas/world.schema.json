@@ -18,17 +18,10 @@
     },
     "source": {
       "type": "object",
-      "required": [
-        "kind"
-      ],
+      "required": ["kind"],
       "properties": {
         "kind": {
-          "enum": [
-            "save",
-            "map",
-            "game-export",
-            "synthetic"
-          ]
+          "enum": ["save", "map", "game-export", "synthetic"]
         },
         "sha256": {
           "type": "string",
@@ -38,26 +31,15 @@
     },
     "extraction": {
       "type": "object",
-      "required": [
-        "status",
-        "fields",
-        "warnings"
-      ],
+      "required": ["status", "fields", "warnings"],
       "properties": {
         "status": {
-          "enum": [
-            "partial",
-            "complete"
-          ]
+          "enum": ["partial", "complete"]
         },
         "fields": {
           "type": "object",
           "additionalProperties": {
-            "enum": [
-              "extracted",
-              "partial",
-              "unavailable"
-            ]
+            "enum": ["extracted", "partial", "unavailable"]
           }
         },
         "warnings": {
@@ -70,49 +52,27 @@
     },
     "game": {
       "type": "object",
-      "required": [
-        "turn",
-        "width",
-        "height",
-        "wrapX",
-        "wrapY",
-        "coordinates"
-      ],
+      "required": ["turn", "width", "height", "wrapX", "wrapY", "coordinates"],
       "properties": {
         "turn": {
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "minimum": 0
         },
         "width": {
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "minimum": 1,
           "maximum": 1024
         },
         "height": {
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "minimum": 1,
           "maximum": 1024
         },
         "wrapX": {
-          "type": [
-            "boolean",
-            "null"
-          ]
+          "type": ["boolean", "null"]
         },
         "wrapY": {
-          "type": [
-            "boolean",
-            "null"
-          ]
+          "type": ["boolean", "null"]
         },
         "coordinates": {
           "const": "odd-r-bottom-up"
@@ -126,19 +86,13 @@
       }
     },
     "tiles": {
-      "type": [
-        "array",
-        "null"
-      ],
+      "type": ["array", "null"],
       "items": {
         "$ref": "#/$defs/tile"
       }
     },
     "cities": {
-      "type": [
-        "array",
-        "null"
-      ],
+      "type": ["array", "null"],
       "items": {
         "$ref": "#/$defs/city"
       }
@@ -147,13 +101,17 @@
       "type": "object"
     },
     "units": {
-      "type": [
-        "array",
-        "null"
-      ],
+      "type": ["array", "null"],
       "description": "Optional current plot-referenced unit state; absent/null means not extracted.",
       "items": {
         "$ref": "#/$defs/unit"
+      }
+    },
+    "religions": {
+      "type": "array",
+      "description": "Optional current religion identity and name metadata; independent from political ownership.",
+      "items": {
+        "$ref": "#/$defs/religion"
       }
     }
   },
@@ -201,80 +159,45 @@
   "$defs": {
     "civilization": {
       "type": "object",
-      "required": [
-        "id",
-        "kind"
-      ],
+      "required": ["id", "kind"],
       "properties": {
         "id": {
           "type": "integer",
           "minimum": 0
         },
         "key": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "name": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "kind": {
-          "enum": [
-            "major",
-            "city-state",
-            "barbarian",
-            "unknown"
-          ]
+          "enum": ["major", "city-state", "barbarian", "unknown"]
         },
         "eliminated": {
-          "type": [
-            "boolean",
-            "null"
-          ]
+          "type": ["boolean", "null"]
         },
         "color": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "pattern": "^#[0-9a-fA-F]{6}$"
         },
         "colorKey": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "rulesetId": {
-          "type": [
-            "integer",
-            "null"
-          ]
+          "type": ["integer", "null"]
         },
         "minorKey": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "nameKey": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "nameSource": {
           "type": "string"
         },
         "playerName": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "maxLength": 256
         },
         "turnOneSlotStatus": {
@@ -284,20 +207,14 @@
           "description": "Validated turn-1 slot status from a matching save; absent/null means unknown."
         },
         "ally": {
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "minimum": 0
         },
         "allianceKnown": {
           "type": "boolean"
         },
         "allianceSinceTurn": {
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "minimum": 0
         },
         "allianceEvidence": {
@@ -307,10 +224,7 @@
           "type": "boolean"
         },
         "capitalCityId": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "capitalEvidence": {
           "type": "object"
@@ -319,13 +233,7 @@
     },
     "tile": {
       "type": "object",
-      "required": [
-        "x",
-        "y",
-        "landWater",
-        "owner",
-        "ownershipKnown"
-      ],
+      "required": ["x", "y", "landWater", "owner", "ownershipKnown"],
       "properties": {
         "x": {
           "type": "integer",
@@ -336,91 +244,49 @@
           "minimum": 0
         },
         "landWater": {
-          "enum": [
-            "land",
-            "water",
-            null
-          ]
+          "enum": ["land", "water", null]
         },
         "owner": {
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "minimum": 0
         },
         "ownershipKnown": {
           "type": "boolean"
         },
         "terrain": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "feature": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "elevation": {
-          "enum": [
-            "flat",
-            "hills",
-            "mountain",
-            null
-          ]
+          "enum": ["flat", "hills", "mountain", null]
         },
         "isLake": {
-          "type": [
-            "boolean",
-            "null"
-          ]
+          "type": ["boolean", "null"]
         },
         "riverEdges": {
-          "type": [
-            "array",
-            "null"
-          ],
+          "type": ["array", "null"],
           "uniqueItems": true,
           "items": {
-            "enum": [
-              "E",
-              "SE",
-              "SW"
-            ]
+            "enum": ["E", "SE", "SW"]
           }
         },
         "visibility": {
-          "type": [
-            "object",
-            "null"
-          ],
+          "type": ["object", "null"],
           "additionalProperties": {
-            "enum": [
-              "visible",
-              "revealed",
-              "unrevealed",
-              "unknown"
-            ]
+            "enum": ["visible", "revealed", "unrevealed", "unknown"]
           }
         },
         "terrainId": {
           "type": "integer"
         },
         "featureHash": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "pattern": "^[0-9a-f]{8}$"
         },
         "resourceHash": {
-          "type": [
-            "string",
-            "null"
-          ],
+          "type": ["string", "null"],
           "pattern": "^[0-9a-f]{8}$"
         },
         "riverFlowDirections": {
@@ -445,10 +311,7 @@
         },
         "cityReference": {
           "type": "object",
-          "required": [
-            "owner",
-            "localId"
-          ],
+          "required": ["owner", "localId"],
           "properties": {
             "owner": {
               "type": "integer",
@@ -464,38 +327,60 @@
           "type": "boolean"
         },
         "routeId": {
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": ["integer", "null"],
           "minimum": 0
         },
         "route": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "routePillaged": {
           "type": "boolean"
+        },
+        "territoryCityKnown": {
+          "type": "boolean"
+        },
+        "territoryCityReference": {
+          "type": ["object", "null"],
+          "required": ["owner", "localId"],
+          "properties": {
+            "owner": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "localId": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["territoryCityReference"],
+            "properties": {
+              "territoryCityReference": {
+                "type": "object"
+              }
+            }
+          },
+          "then": {
+            "required": ["territoryCityKnown"],
+            "properties": {
+              "territoryCityKnown": {
+                "const": true
+              }
+            }
+          }
+        }
+      ]
     },
     "city": {
       "type": "object",
-      "required": [
-        "name",
-        "x",
-        "y",
-        "owner",
-        "capital"
-      ],
+      "required": ["name", "x", "y", "owner", "capital"],
       "properties": {
         "id": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "name": {
           "type": "string"
@@ -513,10 +398,7 @@
           "minimum": 0
         },
         "capital": {
-          "type": [
-            "boolean",
-            "null"
-          ]
+          "type": ["boolean", "null"]
         },
         "localId": {
           "type": "integer",
@@ -527,18 +409,61 @@
           "minimum": 1
         },
         "nameKey": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "nameSource": {
           "type": "string"
         },
         "evidence": {
           "type": "object"
+        },
+        "religionKnown": {
+          "type": "boolean"
+        },
+        "religions": {
+          "type": ["array", "null"],
+          "items": {
+            "$ref": "#/$defs/religionRecord"
+          }
+        },
+        "majorityReligionId": {
+          "type": ["integer", "null"],
+          "minimum": -1
+        },
+        "religionEvidence": {
+          "type": "object"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["religionKnown"],
+            "properties": {
+              "religionKnown": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "required": ["religions"],
+            "properties": {
+              "religions": {
+                "type": "array"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "religions": {
+                "type": "null"
+              },
+              "majorityReligionId": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
     },
     "unit": {
       "type": "object",
@@ -587,22 +512,13 @@
           "type": "boolean"
         },
         "isMilitary": {
-          "type": [
-            "boolean",
-            "null"
-          ]
+          "type": ["boolean", "null"]
         },
         "type": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "domain": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
         },
         "combatClass": {
           "type": ["string", "null"]
@@ -611,10 +527,86 @@
           "type": ["string", "null"]
         },
         "name": {
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": ["string", "null"]
+        },
+        "evidence": {
+          "type": "object"
+        }
+      }
+    },
+    "religionRecord": {
+      "type": "object",
+      "required": ["religionId", "followers", "pressure", "holyCity"],
+      "properties": {
+        "religionId": {
+          "type": "integer",
+          "minimum": -1,
+          "description": "-1 unaffiliated, 0 pantheon, positive founded religion ID."
+        },
+        "followers": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pressure": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "holyCity": {
+          "type": "boolean",
+          "description": "Per-religion holy status, independent of current majority."
+        },
+        "tradeRoutesApplyingPressure": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "religion": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "key": {
+          "type": "string"
+        },
+        "nameKey": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "customName": {
+          "type": ["string", "null"]
+        },
+        "customNameKnown": {
+          "type": "boolean"
+        },
+        "nameSource": {
+          "type": "string"
+        },
+        "metadataIdentity": {
+          "type": "string"
+        },
+        "founder": {
+          "type": ["integer", "null"],
+          "minimum": 0
+        },
+        "holyCity": {
+          "type": ["object", "null"],
+          "required": ["x", "y"],
+          "properties": {
+            "x": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "y": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
         },
         "evidence": {
           "type": "object"

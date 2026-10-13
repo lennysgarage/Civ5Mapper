@@ -1,3 +1,4 @@
+import { validateReligion } from "./religion.js";
 import * as p from "./compat.js";
 import * as saves from "./save.js";
 import * as extraction from "./extract.js";
@@ -21,6 +22,32 @@ export interface Civilization {
   playerName?: string | null;
   [key: string]: any;
 }
+export interface City {
+  id: string;
+  owner: number;
+  localId?: number;
+  x: number;
+  y: number;
+  name: string;
+  religionKnown?: boolean;
+  religions?: import("./religion.js").CityReligion[] | null;
+  majorityReligionId?: number | null;
+  [key: string]: any;
+}
+export interface Tile {
+  x: number;
+  y: number;
+  territoryCityKnown?: boolean;
+  territoryCityReference?: { owner: number; localId: number } | null;
+  [key: string]: any;
+}
+export type { Religion, CityReligion } from "./religion.js";
+export {
+  religiousMajority,
+  religionAvailability,
+  religionName,
+  territoryReligion,
+} from "./religion.js";
 export interface World {
   schemaVersion: "0.1";
   source: Record<string, any>;
@@ -39,8 +66,9 @@ export interface World {
     [key: string]: any;
   };
   civilizations: Civilization[];
-  tiles: Record<string, any>[];
-  cities: Record<string, any>[];
+  tiles: Tile[];
+  cities: City[];
+  religions?: import("./religion.js").Religion[];
   units?: Record<string, any>[];
   inspection?: Record<string, any>;
 }
@@ -74,6 +102,7 @@ export function extractSave(
 }
 export function validateWorld(world: World) {
   renderer.validate_world(p.wrapJson(world));
+  validateReligion(world);
 }
 export function renderSvg(
   world: World,

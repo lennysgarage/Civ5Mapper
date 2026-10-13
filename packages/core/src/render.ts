@@ -1,5 +1,12 @@
 // Direct TypeScript port of validated algorithms. MIT; see NOTICE.
 import * as compat from "./compat.js";
+import {
+  validateReligion,
+  religionAvailability,
+  religionTerritories,
+  religionMarker,
+  layoutReligionLegend,
+} from "./religion.js";
 import { route_segments } from "./routes.js";
 import {
   ROLE_LABELS,
@@ -1558,8 +1565,20 @@ export function render_svg(
     x: any,
     y: any;
   validate_world(world);
-  if (compat.truth(!compat.has(["political", "physical", "army"], mode))) {
-    throw new compat.ParseError("mode must be political, physical or army");
+  const religionWorld = compat.unwrap(world);
+  validateReligion(religionWorld);
+  if (mode === "religion") {
+    const unavailable = religionAvailability(religionWorld);
+    if (unavailable) throw new compat.ParseError(unavailable);
+  }
+  if (
+    compat.truth(
+      !compat.has(["political", "physical", "army", "religion"], mode),
+    )
+  ) {
+    throw new compat.ParseError(
+      "mode must be political, physical, army or religion",
+    );
   }
   armies = compat.truth(compat.eq(mode, "army"))
     ? army_groups(world)
@@ -1916,6 +1935,7 @@ export function render_svg(
     width = __v75[0];
     height = __v75[1];
   }
+  let religionHeaderHeight = 0;
   function project(point: any): any {
     return [
       compat.add(
@@ -1942,7 +1962,7 @@ export function render_svg(
           ),
           margin,
         ),
-        24,
+        24 + religionHeaderHeight,
       ),
     ];
   }
@@ -1974,12 +1994,17 @@ export function render_svg(
     ),
     compat.mul(2, margin),
   );
+  const religionLegendLayout =
+    mode === "religion"
+      ? layoutReligionLegend(religionWorld, vw - 2 * margin)
+      : null;
+  religionHeaderHeight = religionLegendLayout?.height ?? 0;
   vh = compat.add(
     compat.add(
       compat.div(compat.mul(compat.add(compat.mul(3, height), 1), radius), 2),
       compat.mul(2, margin),
     ),
-    24,
+    24 + religionHeaderHeight,
   );
   if (
     compat.truth(
@@ -2025,6 +2050,7 @@ export function render_svg(
             ["political", "Political"],
             ["physical", "Physical terrain"],
             ["army", "Army"],
+            ["religion", "Religion"],
           ]),
           mode,
         ),
@@ -2341,6 +2367,11 @@ export function render_svg(
       );
     }
   }
+  if (mode === "religion") {
+    legend = [
+      "Assigned-city religion on land; circle: city majority; diamond: holy city (independent of majority). Gray: unknown; cream: no majority; ochre: pantheon.",
+    ];
+  }
   if (compat.truth(legend)) {
     compat.append(
       out,
@@ -2576,6 +2607,24 @@ export function render_svg(
         '" fill-rule="evenodd"><title>' +
         compat.format(compat.escape(compat.add(caption, relation)), "") +
         "</title></path>",
+    );
+  }
+  if (mode === "religion") {
+    for (const entry of religionLegendLayout!.items) {
+      const legendX = margin + entry.x,
+        legendY = 57 + entry.y;
+      compat.append(
+        out,
+        `<g class="religion-legend"><title>${compat.escape(entry.name)}</title><rect x="${legendX}" y="${legendY}" width="9" height="9" fill="${entry.color}" stroke="#292a28"/><text x="${legendX + 13}" y="${legendY + 8}" font-size="9">${compat.escape(entry.text)}</text></g>`,
+      );
+    }
+    compat.append(
+      out,
+      religionTerritories(
+        religionWorld,
+        (tiles) => compat.unwrap(polygon_rings(compat.wrapJson(tiles))),
+        (point) => coords(point),
+      ),
     );
   }
   if (compat.truth(compat.get(config, "showRoads"))) {
@@ -3480,7 +3529,12 @@ export function render_svg(
       marker_size = compat.truth(capital)
         ? compat.get(config, "capitalSize")
         : 3.2;
-      if (compat.truth(capital)) {
+      if (mode === "religion") {
+        compat.append(
+          out,
+          religionMarker(religionWorld, compat.unwrap(city), x, y, city_attrs),
+        );
+      } else if (compat.truth(capital)) {
         minor = compat.eq(
           compat.get(compat.get(civs, compat.get(city, "owner")), "kind", null),
           "city-state",

@@ -632,6 +632,44 @@ export function prepare(
     );
     compat.pop(t, "cityReference", null);
   }
+  const hadReligionSnapshot =
+    compat.has(world, "religions") ||
+    compat
+      .iter(compat.get(world, "tiles"))
+      .some((t: any) => compat.has(t, "territoryCityKnown")) ||
+    compat
+      .iter(initial_cities)
+      .some((city: any) => compat.has(city, "religionKnown"));
+  for (const t of compat.iter(compat.get(world, "tiles")))
+    for (const key of [
+      "territoryCityKnown",
+      "territoryCityReference",
+      "territoryCityEvidence",
+    ])
+      compat.pop(t, key, null);
+  for (const city of compat.iter(initial_cities))
+    for (const key of [
+      "religionKnown",
+      "religions",
+      "majorityReligionId",
+      "religionEvidence",
+    ])
+      compat.pop(city, key, null);
+  compat.pop(world, "religions", null);
+  if (hadReligionSnapshot) {
+    const fields = compat.get(compat.get(world, "extraction"), "fields");
+    for (const key of [
+      "cityReligion",
+      "religionCatalog",
+      "religionNames",
+      "territoryCityAssignment",
+    ])
+      compat.put(fields, key, "unavailable");
+    compat.append(
+      warnings,
+      "Current religion and city territory assignments are not historical replay evidence; religion view is unavailable.",
+    );
+  }
   compat.put(world, "cities", initial_cities);
   compat.pop(world, "units", null);
   validate_events(
