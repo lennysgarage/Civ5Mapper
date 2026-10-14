@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 *.Civ5Save
+!assets/examples/turn-132.Civ5Save
 *.Civ5Replay
 *.Civ5Map
 artifacts/

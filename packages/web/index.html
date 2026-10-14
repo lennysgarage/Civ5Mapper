@@ -138,6 +138,7 @@
       /><span id="turn-label"></span>
     </div>
     <main id="drop">
+      <div id="drop-hint" aria-hidden="true"></div>
       <section id="loading-panel" aria-labelledby="loading-title" hidden>
         <h1 id="loading-title">Opening your save</h1>
         <p id="loading-file"></p>
@@ -154,11 +155,16 @@
       </section>
       <div id="welcome">
         <h1>Your world, mapped.</h1>
-        <p>Drop a Civilization V save here, or choose Open save.</p>
+        <p>
+          Drop a Civilization V save anywhere in the highlighted area, or choose
+          Open save.
+        </p>
         <p>
           Explore political, physical and army views. Export the visible map as
           PNG or SVG.
         </p>
+        <button id="load-example">Load example</button>
+        <p class="hint">Try a real multiplayer save without choosing a file.</p>
       </div>
       <iframe id="viewer" title="Interactive Civilization map" hidden></iframe>
     </main>

@@ -45,6 +45,11 @@ See Cloudflare's [static assets guide](https://developers.cloudflare.com/workers
 
 ## Local inputs and exports
 
+The welcome screen offers **Load example**, a bundled multiplayer save
+at `examples/turn-132.Civ5Save`. It is fetched from the same static host only when
+clicked and uses the normal parsing, metadata and cancellation flow. Opening or
+reloading the app does not fetch or load the example.
+
 Saves, normalized JSON, optional ruleset/localization databases, base maps and
 owner mappings are read through browser file inputs. Saves and databases each
 have a 64 MiB input cap, with a 128 MiB decompression cap and bounded binary

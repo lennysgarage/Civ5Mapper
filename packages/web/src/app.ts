@@ -8,6 +8,7 @@ import { metadataNeeds } from "../../core/src/browser_metadata.js";
 const el = (id: string) => document.getElementById(id) as any;
 const assets = { css: viewerCss, js: viewerJs };
 let session: any = null;
+let exampleFetch: AbortController | null = null;
 let worker: Worker | null = null,
   sequence = 0,
   active = 0,
@@ -46,6 +47,7 @@ function setBusy(value: boolean) {
   el("cancel").hidden = !value;
   for (const id of [
     "save",
+    "load-example",
     "load-replay",
     "download-gif",
     "play",
@@ -151,6 +153,7 @@ function mount(
   viewer.srcdoc = documentText;
   viewer.hidden = false;
   el("welcome").hidden = true;
+  el("drop-hint").hidden = true;
   el("downloads").hidden = false;
   el("download-replay").hidden = !currentReplay;
   el("download-gif").hidden = !currentReplay;
@@ -231,33 +234,53 @@ async function receive(event: MessageEvent) {
     stop();
   }
 }
-async function loadSave(selected?: File) {
+async function loadSave(selected?: File | "example") {
   if (busy) return;
-  const f = selected ?? el("save").files[0];
-  if (!f) return;
-  if (!/\.(civ5save|json)$/i.test(f.name)) {
+  const example = selected === "example";
+  let f: File | undefined = example
+    ? undefined
+    : (selected ?? el("save").files[0]);
+  if (!example && !f) return;
+  if (f && !/\.(civ5save|json)$/i.test(f.name)) {
     message("Choose a .Civ5Save or normalized JSON file.");
     return;
   }
-  if (f.size > 64 * 1024 * 1024) {
+  if (f && f.size > 64 * 1024 * 1024) {
     message("Save exceeds 64 MiB");
     return;
   }
   stop();
-  showUpload(f.name);
+  showUpload(example ? "Turn 132 example" : f!.name);
   const token = (active = ++sequence);
   setBusy(true);
-  message("Reading files…");
+  message(example ? "Fetching turn 132 example…" : "Reading files…");
+  const controller = example ? new AbortController() : null;
+  exampleFetch = controller;
   try {
+    if (example) {
+      const response = await fetch(
+        new URL("examples/turn-132.Civ5Save", assetBase),
+        {
+          signal: controller!.signal,
+        },
+      );
+      if (!response.ok)
+        throw new Error("Could not load the example save. Please try again.");
+      f = new File([await response.blob()], "turn-132.Civ5Save");
+      if (token !== active) return;
+      if (f.size > 64 * 1024 * 1024) throw new Error("Save exceeds 64 MiB");
+    }
     const i = await inputs(),
-      bytes = await f.arrayBuffer();
+      bytes = await f!.arrayBuffer();
     if (token !== active) return;
-    request("load-save", { ...i, file: { name: f.name, bytes } });
+    request("load-save", { ...i, file: { name: f!.name, bytes } });
   } catch (e) {
     if (token === active) {
       setBusy(false);
       message((e as Error).message);
     }
+  } finally {
+    if (exampleFetch === controller) exampleFetch = null;
   }
 }
 function download(data: any, name: string, type = "application/json") {
@@ -276,8 +299,11 @@ function go(index: number) {
 }
 resetWorker();
 el("save").addEventListener("change", () => loadSave());
+el("load-example").onclick = () => loadSave("example");
 el("cancel").onclick = () => {
   active = ++sequence;
+  exampleFetch?.abort();
+  exampleFetch = null;
   stop();
   resetWorker();
   setBusy(false);

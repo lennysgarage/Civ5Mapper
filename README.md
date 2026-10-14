@@ -8,7 +8,8 @@ The supported save layouts reconstruct geography, ownership and current cities
 without the original `.Civ5Map`. This is a validated-format prototype: unknown
 layouts fail explicitly. The migration matches the previous implementation on
 138 copied saves and 59 replay files; 56 replays parse and three legacy formats
-remain unsupported. Private saves are never bundled. Compact default Lekmod
+remain unsupported. A turn 132 multiplayer example is bundled for optional
+exploration; other private saves are never bundled. Compact default Lekmod
 metadata supplies names, terrain, colors and military classification.
 See [format evidence and limitations](docs/feasibility.md).
 
@@ -38,7 +39,9 @@ npm run dev
 ```
 
 Open the local URL printed by Vite. Choose or drop a `.Civ5Save` or normalized
-world JSON. Select a style, explore the political, physical and army views,
+world JSON, or click **Load example** on the welcome screen. The example
+is fetched and opened only when requested; the app starts with an empty map.
+Select a style, explore the political, physical and army views,
 then use **Export PNG** or **Export SVG** inside the map viewer. Exports use the
 current viewport, layers, player filters and highlighted empire. **Fit map**
 exports the whole world. World JSON is available above the viewer.
@@ -159,7 +162,8 @@ node scripts/validate_html.mjs map.html /path/to/chrome artifacts/browser-report
 SQLite metadata, CLI behavior and PNG/GIF exports. Tests include 312 synthetic
 comparison cases captured from the retired Python implementation. The
 [TypeScript migration report](docs/typescript-migration.md) records real-file
-comparisons and browser checks. No real saves are committed.
+comparisons and browser checks. The optional turn 132 example is the only real
+save included in the repository (`assets/examples/turn-132.Civ5Save`).
 
 `examples/synthetic-world.json`, `examples/synthetic-map.svg` and
 `examples/synthetic-replay.json` are explicitly fictional fixtures, never
