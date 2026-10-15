@@ -1,7 +1,8 @@
 __pycache__/
 *.pyc
 *.Civ5Save
-!assets/examples/turn-132.Civ5Save
+!examples/turn-132.Civ5Save
+assets/examples/turn-132.json
 *.Civ5Replay
 *.Civ5Map
 artifacts/
@@ -19,4 +20,5 @@ assets/licenses/
 *.db-shm
 *.db-wal
 !assets/databases/*.db
+!assets/databases/eight-yield/*.db
 map.html

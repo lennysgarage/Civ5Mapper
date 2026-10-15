@@ -9,6 +9,7 @@ import {
   layoutReligionLegend,
 } from "./religion.js";
 import { route_segments } from "./routes.js";
+import { naturalWonderLabelTiles } from "./natural_wonders.js";
 import {
   ROLE_LABELS,
   detailed_symbol,
@@ -30,6 +31,7 @@ DEFAULT_STYLE = compat.dict([
   ["showMountains", true],
   ["showCivilizationNames", true],
   ["showForests", true],
+  ["showNaturalWonders", true],
   ["countryFontSize", 18],
   ["cityFontSize", 10],
   ["colorOverrides", compat.dict([])],
@@ -1678,6 +1680,7 @@ export function render_svg(
     "showMountains",
     "showCivilizationNames",
     "showForests",
+    "showNaturalWonders",
     "shadeAlliedCityStates",
     "showOwnedWater",
     "showHexGrid",
@@ -3047,6 +3050,48 @@ export function render_svg(
     }
   }
   occupied = [[margin, 15, compat.sub(vw, margin), 35]];
+  if (compat.get(config, "showNaturalWonders")) {
+    const wonderTiles = [...compat.iter(compat.get(world, "tiles"))]
+      .filter((t) => compat.get(t, "naturalWonder", null))
+      .sort(
+        (a, b) =>
+          compat.get(a, "y") - compat.get(b, "y") ||
+          compat.get(a, "x") - compat.get(b, "x"),
+      );
+    const labelTiles = naturalWonderLabelTiles(
+      wonderTiles.map((t) => compat.unwrap(t)),
+      width,
+      compat.get(compat.get(world, "game"), "wrapX"),
+    );
+    for (const tile of wonderTiles) {
+      const wonder = compat.get(tile, "naturalWonder", null);
+      if (!wonder) continue;
+      const [wx, wy] = center(tile);
+      const name = compat.get(wonder, "name", compat.get(wonder, "type"));
+      const escapedName = compat.escape(name);
+      const key = compat.escape(compat.get(wonder, "type"));
+      const attributes = interactive
+        ? ` role="button" tabindex="0" aria-label="${escapedName}, natural wonder"`
+        : "";
+      const showLabel = labelTiles.has(
+        `${compat.get(tile, "x")},${compat.get(tile, "y")}`,
+      );
+      const labelMarkup = showLabel
+        ? `<text class="natural-wonder-label" x="${wx}" y="${wy + 17}" text-anchor="middle" font-size="9">${escapedName}</text>`
+        : "";
+      compat.append(
+        out,
+        `<g class="natural-wonder-marker" data-natural-wonder="${key}" data-x="${compat.get(tile, "x")}" data-y="${compat.get(tile, "y")}"${attributes}><title>${escapedName} · Natural wonder</title><path d="M${wx},${wy - 7} L${wx + 7},${wy} L${wx},${wy + 7} L${wx - 7},${wy} Z" fill="#185b68" stroke="#f2d67b" stroke-width="1.8"/><path d="M${wx - 3.5},${wy + 2.5} L${wx},${wy - 3.5} L${wx + 3.5},${wy + 2.5} Z" fill="#f2d67b"/>${labelMarkup}</g>`,
+      );
+      const labelWidth = Math.min(String(name).length * 5, 240);
+      compat.append(occupied, [
+        wx - labelWidth / 2,
+        wy - 8,
+        wx + labelWidth / 2,
+        wy + 20,
+      ]);
+    }
+  }
   if (compat.truth(armies)) {
     at_position = compat.defaultdict(compat.list);
     for (const __v134 of compat.iter(compat.items(armies))) {

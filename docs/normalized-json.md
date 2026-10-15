@@ -48,6 +48,13 @@ resolves it. Known feature hashes may resolve without a database; unresolved
 features omit `feature` and retain `featureHash`. Explicit `feature: null` means
 known absent. `resourceHash` is raw evidence, not a guessed resource name.
 
+When a saved feature hash matches a ruleset feature marked `NaturalWonder` or
+`PseudoNaturalWonder`, the tile gains `naturalWonder: {type, nameKey, name}`.
+Localization resolves its name; absent metadata never implies a wonder from
+terrain or geography. The renderer marks each recorded wonder tile and labels
+each connected group once. `showNaturalWonders` controls static output; the
+interactive viewer also offers a Natural wonders layer and click details.
+
 `riverEdges: null` is unknown; `[]` is known absent. Future known edges use E/SE/SW
 with north increasing y. `riverFlowDirections` retains serialized signed enums
 without establishing river presence. `isLake: null` is unknown; water fills

@@ -66,6 +66,10 @@ export async function enrichBrowserWorld(
       needs.religionNames);
   if (!inputs.ruleset && !inputs.localization && !useDefault) return world;
   const url = (name: string) => new URL(name, inputs.assetBase).href;
+  const databases =
+    world.inspection?.profile === "observed-eight-yield"
+      ? "databases/eight-yield"
+      : "databases";
   const files: Databases = {};
   try {
     const [wasm, ruleset, localization] = await Promise.all([
@@ -73,12 +77,12 @@ export async function enrichBrowserWorld(
       inputs.ruleset
         ? new Uint8Array(inputs.ruleset.bytes)
         : useDefault
-          ? asset(url("databases/ruleset.db"))
+          ? asset(url(`${databases}/ruleset.db`))
           : undefined,
       inputs.localization
         ? new Uint8Array(inputs.localization.bytes)
         : useDefault
-          ? asset(url("databases/localization.db"))
+          ? asset(url(`${databases}/localization.db`))
           : undefined,
     ]);
     await initRuleset(wasm);

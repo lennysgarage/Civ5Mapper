@@ -46,12 +46,23 @@ export function enrichWorld(input: World, files: Databases): World {
       const routeTypes = world.tiles.some((t) => t.routeKnown)
         ? new Map(rows(db, "SELECT ID,Type FROM Routes"))
         : new Map();
-      const features = new Map();
-      for (const [key] of rows(db, "SELECT Type FROM Features")) {
+      const features = new Map(),
+        wonders = new Map();
+      const featureColumns = new Set(
+        rows(db, "PRAGMA table_info(Features)").map((r) => r[1]),
+      );
+      const featureColumn = (name: string) =>
+        featureColumns.has(name) ? name : "NULL";
+      for (const [key, description, natural, pseudo] of rows(
+        db,
+        `SELECT Type,${featureColumn("Description")},${featureColumn("NaturalWonder")},${featureColumn("PseudoNaturalWonder")} FROM Features`,
+      )) {
         const hash = typeHash(key);
         if (features.has(hash) && features.get(hash) !== key)
           throw new ParseError("feature hash collision in ruleset");
         features.set(hash, key);
+        if (natural === 1 || pseudo === 1)
+          wonders.set(hash, { type: key, nameKey: description, name: key });
       }
       for (const t of world.tiles) {
         if (
@@ -67,6 +78,13 @@ export function enrichWorld(input: World, files: Databases): World {
         }
         if (t.featureHash && features.has(t.featureHash))
           t.feature = features.get(t.featureHash);
+        if (
+          featureColumns.has("NaturalWonder") ||
+          featureColumns.has("PseudoNaturalWonder")
+        )
+          delete t.naturalWonder;
+        if (wonders.has(t.featureHash))
+          t.naturalWonder = structuredClone(wonders.get(t.featureHash));
       }
       for (const civ of world.civilizations) {
         const row = civ.minorKey
@@ -276,6 +294,9 @@ export function enrichWorld(input: World, files: Databases): World {
         ...world.cities,
         ...(world.units ?? []),
         ...(world.religions ?? []),
+        ...world.tiles.flatMap((t) =>
+          t.naturalWonder ? [t.naturalWonder] : [],
+        ),
       ])
         if (object.nameKey) {
           const values = new Set(
@@ -288,6 +309,7 @@ export function enrichWorld(input: World, files: Databases): World {
           if (values.size === 1) {
             object.name = [...values][0];
             object.nameSource =
+              "metadataIdentity" in object &&
               object.metadataIdentity === "bundled-ruleset-id"
                 ? "bundled-religion-localization"
                 : "localization-database";

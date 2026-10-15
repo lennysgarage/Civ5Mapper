@@ -5,7 +5,7 @@
     "ruleset": {
       "filename": "ruleset.db",
       "bytes": 180224,
-      "sha256": "d9598ef851703bbcf468c1fd4756f23cbc821a1e4011ecdeca7aa3fc2652f66a",
+      "sha256": "0c49651bfa5de91b8cf4c65d405a15b09b983b62326b1ea0e0957c21007689fc",
       "sourceSha256": "12f9fe10637fd8d3ed0ed011431480e6a10d21c56c5ca1ee52ffc5e002c6d420",
       "rows": {
         "Civilizations": 115,
@@ -23,10 +23,10 @@
     "localization": {
       "filename": "localization.db",
       "bytes": 385024,
-      "sha256": "57eee2173123a0fe0e1be4a5df689d8fed67ea42aebce3d16fa4cfa4b9e471e2",
+      "sha256": "1e29190e42b4fd2edddfcada0a783edfca2edb913e53bee6021f9ee6d4beccad",
       "sourceSha256": "3ca6b95eb41a8797e46c88a0c4a8cc656aa434b431a6e86675bdfda5d53117ef",
       "rows": {
-        "Language_en_US": 4461
+        "Language_en_US": 4486
       }
     }
   }

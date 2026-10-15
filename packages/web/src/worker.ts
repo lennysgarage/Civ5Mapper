@@ -43,11 +43,27 @@ self.onmessage = async (event) => {
       rawBase = inputs.rawBase;
       options = inputs.options;
       send(id, { restored: true });
-    } else if (action === "load-save") {
-      send(id, { progress: "Decoding save…" });
+    } else if (action === "load-save" || action === "load-example") {
+      send(id, {
+        progress:
+          action === "load-example" ? "Opening example…" : "Decoding save…",
+      });
       const bytes = checked(inputs.file);
       let w: World;
-      if (inputs.file.name.toLowerCase().endsWith(".json")) {
+      let prepared: World | null = null;
+      if (action === "load-example") {
+        const example = json(inputs.file);
+        w = example.rawWorld;
+        prepared = example.world;
+        validateWorld(w);
+        validateWorld(prepared);
+        if (inputs.playerNames === false) {
+          for (const candidate of [w, prepared]) {
+            for (const civ of candidate.civilizations) delete civ.playerName;
+            candidate.extraction.fields.playerNames = "unavailable";
+          }
+        }
+      } else if (inputs.file.name.toLowerCase().endsWith(".json")) {
         w = json(inputs.file);
         validateWorld(w);
       } else {
@@ -65,7 +81,13 @@ self.onmessage = async (event) => {
       }
       send(id, { progress: "Resolving terrain and military metadata…" });
       const original = w;
-      w = await enrichBrowserWorld(w, inputs);
+      w =
+        prepared &&
+        inputs.bundledMetadata !== false &&
+        !inputs.ruleset &&
+        !inputs.localization
+          ? prepared
+          : await enrichBrowserWorld(w, inputs);
       rawWorld = original;
       rawBase = null;
       world = w;

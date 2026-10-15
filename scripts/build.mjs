@@ -20,6 +20,18 @@ await mkdir("assets/licenses", { recursive: true });
 await cp("third_party", "assets/licenses/third_party", { recursive: true });
 await cp("NOTICE", "assets/licenses/NOTICE");
 await cp("LICENSE", "assets/licenses/LICENSE");
+// Both production builds and predev regenerate the example from current code
+// and bundled databases. The source save lives outside Vite's public directory.
+await build({
+  entryPoints: ["scripts/prepare_example.ts"],
+  outfile: "dist/build/prepare-example.mjs",
+  bundle: true,
+  platform: "node",
+  format: "esm",
+  packages: "external",
+  target: "node22",
+});
+await import("../dist/build/prepare-example.mjs");
 if (!process.argv.includes("--assets-only")) {
   await mkdir("dist/cli", { recursive: true });
   await build({

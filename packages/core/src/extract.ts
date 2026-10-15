@@ -12,9 +12,9 @@ import { extract_units } from "./units.js";
 export let FEATURE_HASHES: any, FEATURE_KEYS: any, PROFILES: any;
 /** Current-state extraction with validated, explicitly limited layout profiles.
 
-Vanilla layout follows SDK serialization evidence. The seven-yield profile is
-empirical, validated against a local modpack corpus; it is not a general custom
-DLL decoder. Unnamed fields are skipped, never given invented meanings.
+Vanilla layout follows SDK serialization evidence. The seven- and eight-yield
+profiles are empirical, validated against local saves; they are not a general
+custom DLL decoder. Unnamed fields are skipped, never given invented meanings.
  */
 
 PROFILES = compat.dict([
@@ -40,6 +40,19 @@ PROFILES = compat.dict([
       ["cityOwnerPadding", 0],
       ["cityYieldVectors", 18],
       ["cityNamePadding", 5],
+    ]),
+  ],
+  [
+    "observed-eight-yield",
+    compat.dict([
+      ["ownerOffset", 58],
+      ["routePillageOffset", 50],
+      ["yields", 8],
+      ["cityScalars", 60],
+      ["cityOwnerPadding", 0],
+      ["cityYieldVectors", 18],
+      ["cityNamePadding", 5],
+      ["gameHeaderPadding", 4],
     ]),
   ],
 ]);
@@ -731,6 +744,7 @@ export function read_cities(
   tiles: any,
   minimum: any,
   profile: any,
+  gameHeaderPadding = 0,
 ): any {
   let candidates: any,
     cities: any,
@@ -789,7 +803,10 @@ export function read_cities(
     }
     compat.append(cities, compat.get(candidates, 0));
   }
-  expected = compat.get(compat.struct.unpack_from("<i", state, 40), 0);
+  expected = compat.get(
+    compat.struct.unpack_from("<i", state, 40 + gameHeaderPadding),
+    0,
+  );
   if (compat.truth(!compat.eq(compat.len(cities), expected))) {
     throw new compat.ParseError(
       "city aggregate mismatch: decoded " +
@@ -896,6 +913,18 @@ export function extract_bytes(
       throw new compat.ParseError("unknown profile " + compat.format(name, ""));
     }
     try {
+      const padding = compat.get(
+        compat.get(PROFILES, name),
+        "gameHeaderPadding",
+        0,
+      );
+      if (
+        compat.get(compat.struct.unpack_from("<I", state, 8 + padding), 0) !==
+        compat.get(compat.get(world, "game"), "turn")
+      )
+        throw new compat.ParseError(
+          "setup/state turn mismatch for this layout",
+        );
       {
         const __v57 = compat.iter(
           read_plots(state, header, compat.get(PROFILES, name)),
@@ -935,6 +964,7 @@ export function extract_bytes(
     tiles,
     compat.get(diagnostics, "endOffset"),
     compat.get(PROFILES, name),
+    compat.get(compat.get(PROFILES, name), "gameHeaderPadding", 0),
   );
   {
     const __v59 = compat.iter([tiles, cities]);
@@ -943,6 +973,17 @@ export function extract_bytes(
   }
   compat.put(compat.get(world, "inspection"), "plots", diagnostics);
   compat.put(compat.get(world, "inspection"), "profile", name);
+  const gameHeaderPadding = compat.get(
+    compat.get(PROFILES, name),
+    "gameHeaderPadding",
+    0,
+  );
+  if (gameHeaderPadding)
+    compat.put(
+      compat.get(world, "inspection"),
+      "gameHeaderPadding",
+      gameHeaderPadding,
+    );
   roster = (() => {
     const __v60: any[] = [];
     for (const __v61 of compat.iter(compat.get(world, "civilizations"))) {

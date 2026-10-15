@@ -46,6 +46,12 @@ export interface City {
 export interface Tile {
   x: number;
   y: number;
+  naturalWonder?: {
+    type: string;
+    name: string;
+    nameKey?: string | null;
+    nameSource?: string;
+  };
   territoryCityKnown?: boolean;
   territoryCityReference?: { owner: number; localId: number } | null;
   [key: string]: any;

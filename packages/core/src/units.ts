@@ -3,16 +3,17 @@ import * as compat from "./compat.js";
 import { ParseError, Reader } from "./save.js";
 import { player_anchors } from "./diplomacy.js";
 export let UNIT_PROFILES: any;
-/** Opt-in current plot-referenced units, with narrowly validated v9 profiles.
+/** Opt-in current plot-referenced units, with narrowly validated v9/v10 profiles.
 
 Prefix order and archive tail follow SDK CvUnit.h/CvUnit.cpp. String offsets
-are empirical for the two tested DLL families, not a generic archive decoder.
+are empirical for the tested DLL families, not a generic archive decoder.
 Uninterpreted archive bytes never acquire invented field meanings.
  */
 
 UNIT_PROFILES = compat.dict([
   ["bnw-six-yield", 507],
   ["observed-seven-yield", 931],
+  ["observed-eight-yield", 962],
 ]);
 export function read_unit(
   state: any,
@@ -43,9 +44,10 @@ export function read_unit(
     compat.slice(compat.memoryview(state), null, limit, null),
     offset,
   );
-  if (compat.truth(!compat.eq(r.unpack("I"), 9))) {
+  const unitVersion = profile === "observed-eight-yield" ? 10 : 9;
+  if (compat.truth(!compat.eq(r.unpack("I"), unitVersion))) {
     throw new compat.ParseError(
-      "unsupported unit version; requires validated v9",
+      "unsupported unit version; requires validated v" + unitVersion,
     );
   }
   {
@@ -207,7 +209,7 @@ export function read_unit(
         ["offset", offset],
         ["typeHashOffset", hash_offset],
         ["validatedThroughOffset", r.pos],
-        ["unitVersion", 9],
+        ["unitVersion", unitVersion],
         ["archiveStringOffset", compat.get(UNIT_PROFILES, profile)],
         ["vectorSizes", sizes],
       ]),
@@ -215,6 +217,8 @@ export function read_unit(
   ]);
 }
 export function extract_units(world: any, state: any, profile: any): any {
+  if (!compat.has(UNIT_PROFILES, profile))
+    throw new ParseError("unit layout has not been validated for " + profile);
   let anchors: any,
     candidates: any,
     hi: any,
@@ -291,7 +295,11 @@ export function extract_units(world: any, state: any, profile: any): any {
     anchors = player_anchors(
       state,
       compat.get(plots, "endOffset"),
-      compat.truth(compat.eq(profile, "bnw-six-yield")) ? 6 : 7,
+      profile === "bnw-six-yield"
+        ? 6
+        : profile === "observed-eight-yield"
+          ? 8
+          : 7,
       compat.get(world, "cities"),
     );
     for (const __v17 of compat.iter(references)) {
@@ -346,7 +354,9 @@ export function extract_units(world: any, state: any, profile: any): any {
             compat.format(compat.get(ref, "localId"), "") +
             " has " +
             compat.format(compat.len(candidates), "") +
-            " validated v9 records; unknown/ambiguous unit layout",
+            " validated v" +
+            (profile === "observed-eight-yield" ? 10 : 9) +
+            " records; unknown/ambiguous unit layout",
         );
       }
       compat.append(units, compat.get(candidates, 0));

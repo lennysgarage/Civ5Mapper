@@ -727,6 +727,17 @@ export function inspect_bytes(
       ["wrapping", compat.truth(map_header) ? "extracted" : "unavailable"],
     ]),
   );
+  // Newer Lekmod inserts m_iCombatModListLength after the state version.
+  // A matching turn only identifies a candidate here. Extraction also checks
+  // the corresponding plot layout and city aggregate before accepting it.
+  const legacyTurn = compat.get(compat.struct.unpack_from("<I", state, 8), 0);
+  const elapsedTurns =
+    legacyTurn !== compat.get(header, "turn") &&
+    state.length >= 16 &&
+    compat.get(compat.struct.unpack_from("<I", state, 12), 0) ===
+      compat.get(header, "turn")
+      ? compat.get(compat.struct.unpack_from("<I", state, 12), 0)
+      : legacyTurn;
   result = compat.dict([
     ["schemaVersion", "0.1"],
     [
@@ -756,10 +767,7 @@ export function inspect_bytes(
         ["mapHeader", map_header],
         ["embeddedDatabase", database],
         ["stateVersion", compat.get(compat.struct.unpack_from("<I", state), 0)],
-        [
-          "elapsedTurns",
-          compat.get(compat.struct.unpack_from("<I", state, 8), 0),
-        ],
+        ["elapsedTurns", elapsedTurns],
       ]),
     ],
   ]);

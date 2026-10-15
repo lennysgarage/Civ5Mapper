@@ -269,6 +269,55 @@ try {
     'Array.from(document.querySelector("#mode").options).filter(o=>!o.disabled).map(o=>o.value)',
   );
   const initial = await evaluate('document.querySelector("#mode").value');
+  const capitalCounts = await evaluate(
+    '({expected:JSON.parse(document.querySelector("#world-data").textContent).world.cities.filter(c=>c.capital===true).length,actual:document.querySelectorAll("#stage .capital-marker").length})',
+  );
+  assert.equal(capitalCounts.actual, capitalCounts.expected);
+  passed("recorded current capitals receive capital markers");
+  const naturalWonders = await evaluate(
+    'JSON.parse(document.querySelector("#world-data").textContent).world.tiles.filter(t=>t.naturalWonder)',
+  );
+  if (naturalWonders.length) {
+    for (const mode of available) {
+      const markers = await evaluate(
+        `(()=>{const mode=document.querySelector('#mode');mode.value=${JSON.stringify(mode)};mode.dispatchEvent(new Event('change'));return Array.from(document.querySelectorAll('#stage .natural-wonder-marker')).map(n=>({x:Number(n.dataset.x),y:Number(n.dataset.y),type:n.dataset.naturalWonder}));})()`,
+      );
+      assert.equal(markers.length, naturalWonders.length);
+      assert.ok(
+        markers.every((marker) =>
+          naturalWonders.some(
+            (tile) =>
+              tile.x === marker.x &&
+              tile.y === marker.y &&
+              tile.naturalWonder.type === marker.type,
+          ),
+        ),
+      );
+    }
+    const detail = await evaluate(
+      `(()=>{document.querySelector('#stage .natural-wonder-marker').dispatchEvent(new MouseEvent('click',{bubbles:true}));return document.querySelector('#details').textContent;})()`,
+    );
+    assert.ok(detail.includes(naturalWonders[0].naturalWonder.name));
+    assert.ok(detail.includes("Natural wonder"));
+    await evaluate(
+      'document.querySelector("[data-layer=naturalWonders]").click()',
+    );
+    assert.equal(
+      await evaluate(
+        'Array.from(document.querySelectorAll("#stage .natural-wonder-marker")).every(n=>n.classList.contains("layer-hidden"))',
+      ),
+      true,
+    );
+    await evaluate(
+      'document.querySelector("[data-layer=naturalWonders]").click()',
+    );
+    await evaluate(
+      `document.querySelector('#mode').value=${JSON.stringify(initial)};document.querySelector('#mode').dispatchEvent(new Event('change'));document.querySelector('#clear-focus').click()`,
+    );
+    passed(
+      "recorded natural wonders appear in every available view with click details and a layer toggle",
+    );
+  }
   const alliances = await evaluate(`(()=>{
     const {world}=JSON.parse(document.querySelector('#world-data').textContent);
     return world.civilizations.filter(c=>c.kind==='city-state' && c.allianceKnown===true && c.ally!==null);
@@ -1128,6 +1177,96 @@ try {
       retained,
     );
     passed("invalid replacement file reports error and retains previous map");
+
+    // Start fresh so cached metadata cannot hide an accidental database fetch.
+    const exampleRequests = requests.length;
+    await call("Page.navigate", { url: file });
+    await until('document.documentElement.dataset.ready==="true"');
+    assert.equal(
+      requests.slice(exampleRequests).some((url) => url.includes("/examples/")),
+      false,
+    );
+    await evaluate('document.querySelector("#load-example").click()');
+    const exampleWorld =
+      'JSON.parse(document.querySelector("#viewer").contentDocument.querySelector("#world-data").textContent).world';
+    await until(
+      `document.querySelector("#cancel").hidden && Boolean(document.querySelector("#viewer").contentWindow?.civmapperViewer) && ${exampleWorld}.game.turn===132`,
+    );
+    const expectedExample = JSON.parse(
+      await readFile("assets/examples/turn-132.json", "utf8"),
+    );
+    for (const expected of Object.values(expectedExample)) {
+      delete expected.inspection;
+      expected.civilizations.sort((a, b) => a.id - b.id);
+      expected.tiles.sort((a, b) => a.y - b.y || a.x - b.x);
+      expected.cities.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+      expected.units?.sort(
+        (a, b) => a.owner - b.owner || String(a.id).localeCompare(String(b.id)),
+      );
+    }
+    const compareExample = async (expected) => {
+      const actual = await evaluate(exampleWorld);
+      for (const key of Object.keys(actual))
+        assert.ok(
+          isDeepStrictEqual(actual[key], expected[key]),
+          `Example ${key} mismatch`,
+        );
+    };
+    await compareExample(expectedExample.world);
+    assert.equal(
+      await evaluate(
+        'document.querySelector("#viewer").contentDocument.querySelectorAll("#stage .natural-wonder-marker").length',
+      ),
+      expectedExample.world.tiles.filter((t) => t.naturalWonder).length,
+    );
+    const fetched = requests.slice(exampleRequests);
+    assert.ok(fetched.some((url) => url.endsWith("/examples/turn-132.json")));
+    assert.equal(
+      fetched.some((url) => /\.Civ5Save|\/databases\/|sql-wasm/.test(url)),
+      false,
+      "prepared example needs no source save or metadata databases",
+    );
+    passed(
+      "example JSON matches the prepared world without save or database downloads",
+    );
+
+    await evaluate('document.querySelector("#bundled-metadata").click()');
+    await until(
+      `document.querySelector("#cancel").hidden && ${exampleWorld}.tiles[0].terrain===null`,
+    );
+    await compareExample(expectedExample.rawWorld);
+    await evaluate('document.querySelector("#bundled-metadata").click()');
+    await until(
+      `document.querySelector("#cancel").hidden && ${exampleWorld}.units.every(u=>u.classificationKnown===true)`,
+    );
+    await compareExample(expectedExample.world);
+    passed("example retains decoded source data for metadata changes");
+
+    await evaluate(
+      'document.querySelector("#player-names").checked=false;document.querySelector("#load-example").click()',
+    );
+    await until(
+      `document.querySelector("#cancel").hidden && ${exampleWorld}.extraction.fields.playerNames==="unavailable"`,
+    );
+    assert.equal(
+      await evaluate(`${exampleWorld}.civilizations.some(c=>c.playerName)`),
+      false,
+    );
+    const retainedExample = await evaluate(
+      'document.querySelector("#viewer").srcdoc',
+    );
+    await evaluate(
+      'document.querySelector("#load-example").click();document.querySelector("#cancel").click()',
+    );
+    assert.equal(
+      await evaluate('document.querySelector("#viewer").srcdoc'),
+      retainedExample,
+    );
+    assert.equal(
+      await evaluate('document.querySelector("#cancel").hidden'),
+      true,
+    );
+    passed("example respects player name settings and cancellation");
   }
   assert.equal(errors.length, 0);
   if (serverURL)

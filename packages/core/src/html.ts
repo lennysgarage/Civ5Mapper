@@ -130,6 +130,7 @@ export function renderHtml(
       cities: config.showCities,
       religionTerritories: true,
       holyCities: true,
+      naturalWonders: config.showNaturalWonders,
       roads: config.showRoads,
       rivers: config.showRivers,
       cityLabels: config.showCities,

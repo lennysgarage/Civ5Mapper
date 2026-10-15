@@ -66,6 +66,7 @@ export function mountViewer(root: Document = document) {
     cities: ["Cities", ".capital-marker,.city-marker"],
     religionTerritories: ["Assigned-city religion", ".religion-territory"],
     holyCities: ["Holy cities", ".holy-city-marker"],
+    naturalWonders: ["Natural wonders", ".natural-wonder-marker"],
     hexGrid: ["Hex grid", ".hex-grid"],
     roads: ["Roads", ".route"],
     rivers: ["Rivers", ".river"],
@@ -195,6 +196,11 @@ export function mountViewer(root: Document = document) {
     const allies = world.civilizations
       .filter((c) => selected !== "" && String(knownAlly(c)?.id) === selected)
       .sort((a, b) => label(a.id).localeCompare(label(b.id)) || a.id - b.id);
+    const unknownAlliances =
+      world.extraction.fields.cityStateAlliances === "unavailable" ||
+      world.civilizations.some(
+        (c) => c.kind === "city-state" && c.allianceKnown !== true,
+      );
     const focusedOwners = new Set([
       selected,
       ...(modeSelect.value === "culture" ? [] : allies).map((c) =>
@@ -233,8 +239,11 @@ export function mountViewer(root: Document = document) {
         rows.push([
           "Known city-state allies",
           allies.length
-            ? allies.map((c) => label(c.id)).join(", ")
-            : "None recorded",
+            ? allies.map((c) => label(c.id)).join(", ") +
+              (unknownAlliances ? "; other alliances unknown" : "")
+            : unknownAlliances
+              ? "Unknown"
+              : "None recorded",
         ]);
       if (entry) rows.push(["Military units", entry.total]);
       showDetails(
@@ -1007,6 +1016,24 @@ export function mountViewer(root: Document = document) {
     status(`Selected ${city.name}`);
   }
   function activate(target) {
+    const wonder = target.closest(".natural-wonder-marker");
+    if (wonder) {
+      const tile = world.tiles.find(
+        (t) =>
+          t.x === Number(wonder.dataset.x) && t.y === Number(wonder.dataset.y),
+      );
+      if (tile?.naturalWonder) {
+        showDetails(tile.naturalWonder.name || tile.naturalWonder.type, [
+          ["Feature", "Natural wonder"],
+          ["Location", `${tile.x}, ${tile.y}`],
+          ["Territory", tile.owner === null ? "Unclaimed" : label(tile.owner)],
+        ]);
+        status(
+          `Selected ${tile.naturalWonder.name || tile.naturalWonder.type}`,
+        );
+      }
+      return;
+    }
     if (modeSelect.value === "religion") {
       const holy = target.closest(".holy-city-marker");
       if (holy) {

@@ -45,9 +45,13 @@ See Cloudflare's [static assets guide](https://developers.cloudflare.com/workers
 
 ## Local inputs and exports
 
-The welcome screen offers **Load example**, a bundled multiplayer save
-at `examples/turn-132.Civ5Save`. It is fetched from the same static host only when
-clicked and uses the normal parsing, metadata and cancellation flow. Opening or
+The welcome screen offers **Load example**, a multiplayer world prepared during
+`npm run build` and `npm run dev`. The source save at
+`examples/turn-132.Civ5Save` stays in the repository and is excluded from the
+deployed site. Only generated `examples/turn-132.json` is fetched, from the same
+static host when clicked. It includes the decoded world and a copy enriched with
+default metadata, avoiding save decoding and database loading on the default
+path while preserving custom metadata settings and cancellation. Opening or
 reloading the app does not fetch or load the example.
 
 Saves, normalized JSON, optional ruleset/localization databases, base maps and
@@ -61,9 +65,10 @@ preferences disable loading animations. Browser cancellation terminates the work
 remains usable after cancellation or invalid replacement files. No storage,
 IndexedDB, service worker or persistence is used.
 
-Default Lekmod metadata loads automatically for unresolved save data. The two
-bundled SQLite files total about **536 KiB**: ruleset identities, terrain/features,
-routes, colors, unit classifications and English city/civilization/unit names.
+Default Lekmod metadata loads automatically for unresolved save data. Each
+metadata set contains two SQLite files, about **552 KiB** for the original set
+and **564 KiB** for the newer eight-yield set: ruleset identities, terrain/features,
+routes, colors, unit classifications and English city/civilization/unit/feature names.
 No saved world state, graphics or unrelated game text is included. Values match
 the caches previously used by the Python workflow; the exact Lekmod release is
 unknown. Source and bundle hashes are recorded in
@@ -77,6 +82,24 @@ Classification and color data are hash/identity checked; a mismatched default
 leaves the independently valid political map usable and shows a notice requesting
 matching databases. An invalid explicit override reports an error and keeps the
 last valid map. Default army extraction failures are also reported.
+
+The newer `observed-eight-yield` save layout is detected automatically alongside
+the existing six- and seven-yield layouts. It validates the shifted game header,
+all plot coordinates and land/ownership totals, city identities and city count.
+A separate compact metadata set resolves terrain and English names for the newer
+roster. It was checked against the turn-157 singleplayer save using Lekmap v6.3;
+the map script itself is not needed to load a save. Its v17 player identities,
+capital references, city-state alliances, culture records and plot-referenced
+v10 units are checked against bounded records and current city/plot identities.
+Political, physical, army, religion and tourism views are supported for that
+save. Populated v17 conversion-history vectors are not yet supported; their
+optional player data remains unknown. Embedded replay compatibility is still
+limited to the previously validated layouts.
+
+Both metadata sets include natural-wonder flags and localized feature names.
+Recorded wonder tiles appear in every view, with a Natural wonders layer toggle
+and click details. Multi-tile wonders share a label. Terrain alone never implies
+a natural wonder.
 
 To regenerate the compact databases from matching, read-only source caches:
 

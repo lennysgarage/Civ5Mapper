@@ -1,0 +1,33 @@
+{
+  "name": "Newer eight-yield Lekmod metadata",
+  "description": "Lookup values and English names from the local caches validated with the turn-157 singleplayer save using Lekmap v6.3. Exact Lekmod release is unknown; identity mismatches are rejected.",
+  "files": {
+    "ruleset": {
+      "filename": "ruleset.db",
+      "bytes": 184320,
+      "sha256": "8d55849d6d3fcd87cc9ec0dd41c0b6f4335953d04cf318781bea75e06ee5312d",
+      "sourceSha256": "094580a93dc8b62ed74918c7e262ca9375780b8fa175be4167a6f1dd4d439214",
+      "rows": {
+        "Civilizations": 117,
+        "MinorCivilizations": 58,
+        "Religions": 14,
+        "Terrains": 9,
+        "Features": 26,
+        "Defines": 5,
+        "Routes": 2,
+        "PlayerColors": 182,
+        "Colors": 372,
+        "Units": 231
+      }
+    },
+    "localization": {
+      "filename": "localization.db",
+      "bytes": 393216,
+      "sha256": "b4613b6fdbf8cb7b67887e7cb0b15399a3a1cfb29f198672d851e666d5db6185",
+      "sourceSha256": "996ccb7500b54c5f4f91d5ec81fc7ad0febe64ea1fdc83434846828d857d280e",
+      "rows": {
+        "Language_en_US": 4532
+      }
+    }
+  }
+}

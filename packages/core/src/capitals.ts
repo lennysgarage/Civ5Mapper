@@ -33,6 +33,18 @@ PLAYER_PROFILES = compat.dict([
       ["yields", 7],
     ]),
   ],
+  [
+    "observed-eight-yield",
+    compat.dict([
+      ["prefixBytes", 1046],
+      ["capitalBack", 262],
+      ["tailInts", 65],
+      ["originalXIndex", 40],
+      ["trailerBooleans", 2],
+      ["yields", 8],
+      ["playerVersion", 17],
+    ]),
+  ],
 ]);
 export function read_capital(
   state: any,
@@ -76,7 +88,11 @@ export function read_capital(
     throw new compat.ParseError("player prefix overlaps plots");
   }
   r = new Reader(state, start);
-  if (compat.truth(!compat.eq(r.unpack("I"), 16))) {
+  if (
+    compat.truth(
+      !compat.eq(r.unpack("I"), compat.get(profile, "playerVersion", 16)),
+    )
+  ) {
     throw new compat.ParseError("unsupported capital player version");
   }
   {
@@ -307,7 +323,7 @@ export function read_capital(
 }
 export function add_capitals(world: any, state: any, profile_name: any): any {
   let anchors: any, city: any, civ: any, info: any, known: any, profile: any;
-  profile = compat.get(PLAYER_PROFILES, profile_name);
+  profile = compat.get(PLAYER_PROFILES, profile_name, null);
   for (const __v14 of compat.iter(compat.get(world, "civilizations"))) {
     civ = __v14;
     compat.update(
@@ -319,6 +335,10 @@ export function add_capitals(world: any, state: any, profile_name: any): any {
     );
   }
   try {
+    if (profile === null)
+      throw new ParseError(
+        "player capital layout has not been validated for " + profile_name,
+      );
     anchors = compat.get(
       compat.get(world, "inspection"),
       "playerIdentities",

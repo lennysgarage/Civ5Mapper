@@ -207,9 +207,11 @@ export function extractCulture(world: World, state: Uint8Array) {
     fields.cultureContact =
     fields.cultureThresholds =
       "unavailable";
-  const prefixBytes = { "bnw-six-yield": 908, "observed-seven-yield": 1050 }[
-    world.inspection?.profile
-  ];
+  const prefixBytes = {
+    "bnw-six-yield": 908,
+    "observed-seven-yield": 1050,
+    "observed-eight-yield": 1046,
+  }[world.inspection?.profile];
   if (!prefixBytes) {
     world.extraction.warnings.push(
       "Culture view unavailable: this player culture layout and units have not been validated.",
@@ -250,7 +252,8 @@ export function extractCulture(world: World, state: Uint8Array) {
     if (
       storedRaw < 0 ||
       lifetimeRaw < storedRaw ||
-      view.getInt32(prefix, true) !== 16
+      view.getInt32(prefix, true) !==
+        (world.inspection?.profile === "observed-eight-yield" ? 17 : 16)
     )
       continue;
     const lifetime = Math.floor(lifetimeRaw / 100);

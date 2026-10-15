@@ -62,6 +62,19 @@ for (const [i, fixture] of fixtures.entries())
       return;
     }
     const actual = fn(...args);
+    // The legacy oracle predates the optional newer Lekmod layout attempt.
+    if (
+      fixture.module === "diagnostics" &&
+      fixture.function === "layout_diagnostics"
+    )
+      actual.set(
+        "profileAttempts",
+        actual
+          .get("profileAttempts")
+          .filter(
+            (attempt) => attempt.get("profile") !== "observed-eight-yield",
+          ),
+      );
     // This legacy Python oracle predates optional territory assignments.
     // Their decoding and failure behavior have dedicated religion tests.
     if (

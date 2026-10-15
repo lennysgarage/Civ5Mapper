@@ -262,6 +262,17 @@
         "feature": {
           "type": ["string", "null"]
         },
+        "naturalWonder": {
+          "type": "object",
+          "description": "Recorded feature matched to a natural-wonder flag in the ruleset; omission means unavailable or not identified as a wonder.",
+          "required": ["type", "name"],
+          "properties": {
+            "type": { "type": "string" },
+            "name": { "type": "string" },
+            "nameKey": { "type": ["string", "null"] },
+            "nameSource": { "type": "string" }
+          }
+        },
         "elevation": {
           "enum": ["flat", "hills", "mountain", null]
         },

@@ -18,7 +18,7 @@ const tables = {
   MinorCivilizations: ["Type", "Description"],
   Religions: ["ID", "Type", "Description"],
   Terrains: ["ID", "Type", "Water"],
-  Features: ["Type"],
+  Features: ["Type", "Description", "NaturalWonder", "PseudoNaturalWonder"],
   Defines: ["Name", "Value"],
   Routes: ["ID", "Type"],
   PlayerColors: ["Type", "PrimaryColor"],
@@ -42,6 +42,7 @@ try {
     ["MinorCivilizations", "Description"],
     ["Religions", "Description"],
     ["Units", "Description"],
+    ["Features", "Description"],
     ["Civilization_CityNames", "CityName"],
   ]) {
     const result = lookupSource.exec(`SELECT "${column}" FROM "${table}"`)[0];

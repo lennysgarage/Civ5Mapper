@@ -47,6 +47,8 @@ export function player_anchors(
     pos: any,
     r: any;
   marker = compat.struct.pack("<I", yields);
+  const identityBytes = yields === 8 ? 36 : 32;
+  const yieldVectors = yields === 8 ? 13 : 10;
   {
     const __v3 = compat.iter([[], minimum]);
     anchors = __v3[0];
@@ -58,15 +60,24 @@ export function player_anchors(
     )
   ) {
     try {
-      if (compat.truth(compat.compare(compat.sub(pos, 32), minimum) < 0)) {
+      if (
+        compat.truth(
+          compat.compare(compat.sub(pos, identityBytes), minimum) < 0,
+        )
+      ) {
         throw new compat.ParseError("player identity before map end");
       }
-      r = new Reader(state, compat.sub(pos, 32));
+      r = new Reader(state, compat.sub(pos, identityBytes));
       boolean_bytes(r, 11);
       founded = r.unpack("i");
       boolean_bytes(r, 3);
       conqueror = r.unpack("i");
       boolean_bytes(r, 2);
+      // v17 adds a counted conversion-history vector before the player ID.
+      // This observed profile has no entries; populated histories need their
+      // own boundary validation before they can establish player intervals.
+      if (yields === 8 && r.count() !== 0)
+        throw new ParseError("populated conversion history is not supported");
       owner = r.unpack("i");
       r.take(4);
       if (
@@ -94,7 +105,7 @@ export function player_anchors(
       ) {
         throw new compat.ParseError("invalid player identity");
       }
-      for (const __v5 of compat.iter(compat.range(10))) {
+      for (const __v5 of compat.iter(compat.range(yieldVectors))) {
         _ = __v5;
         if (compat.truth(!compat.eq(r.unpack("I"), yields))) {
           throw new compat.ParseError("invalid player yield-vector size");
@@ -105,7 +116,7 @@ export function player_anchors(
         anchors,
         compat.dict([
           ["id", owner],
-          ["offset", compat.sub(pos, 32)],
+          ["offset", compat.sub(pos, identityBytes)],
           ["endOffset", r.pos],
         ]),
       );
@@ -174,6 +185,7 @@ export function read_minor_ai(
   limit: any,
   turn: any,
   extra_arrays: any,
+  newer = false,
 ): any {
   let _: any,
     ally: any,
@@ -223,7 +235,9 @@ export function read_minor_ai(
   if (
     compat.truth(
       compat.or(
-        () => !compat.has(compat.range(-1, 4), personality),
+        // Newer Lekmod personalities are database IDs, beyond the four SDK
+        // enum values. Their names are not inferred from these integers.
+        () => personality < -1 || personality >= (newer ? 4096 : 4),
         () => !compat.has(compat.range(-1, 3), status),
       ),
     )
@@ -379,6 +393,11 @@ export function read_minor_ai(
     }
   }
   boolean_bytes(r, 1);
+  if (newer) {
+    // The observed eight-yield build saves the per-major religion burst flags.
+    // Other optional DLL tails are rejected by the following deal-AI boundary.
+    boolean_bytes(r, 22);
+  }
   end = r.pos;
   if (compat.truth(!compat.eq(r.unpack("I"), 1))) {
     throw new compat.ParseError("missing following deal-AI boundary");
@@ -520,6 +539,7 @@ export function add_alliances(world: any, state: any, yields: any): any {
           hi,
           compat.get(compat.get(world, "game"), "turn"),
           extra_arrays,
+          yields === 8,
         );
         if (
           compat.truth(

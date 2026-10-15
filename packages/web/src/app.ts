@@ -259,21 +259,24 @@ async function loadSave(selected?: File | "example") {
   try {
     if (example) {
       const response = await fetch(
-        new URL("examples/turn-132.Civ5Save", assetBase),
+        new URL("examples/turn-132.json", assetBase),
         {
           signal: controller!.signal,
         },
       );
       if (!response.ok)
         throw new Error("Could not load the example save. Please try again.");
-      f = new File([await response.blob()], "turn-132.Civ5Save");
+      f = new File([await response.blob()], "turn-132.json");
       if (token !== active) return;
       if (f.size > 64 * 1024 * 1024) throw new Error("Save exceeds 64 MiB");
     }
     const i = await inputs(),
       bytes = await f!.arrayBuffer();
     if (token !== active) return;
-    request("load-save", { ...i, file: { name: f!.name, bytes } });
+    request(example ? "load-example" : "load-save", {
+      ...i,
+      file: { name: f!.name, bytes },
+    });
   } catch (e) {
     if (token === active) {
       setBusy(false);

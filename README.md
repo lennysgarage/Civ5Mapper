@@ -163,7 +163,8 @@ SQLite metadata, CLI behavior and PNG/GIF exports. Tests include 312 synthetic
 comparison cases captured from the retired Python implementation. The
 [TypeScript migration report](docs/typescript-migration.md) records real-file
 comparisons and browser checks. The optional turn 132 example is the only real
-save included in the repository (`assets/examples/turn-132.Civ5Save`).
+save included in the repository (`examples/turn-132.Civ5Save`). The site ships
+only its generated JSON, decoded and enriched during the build.
 
 `examples/synthetic-world.json`, `examples/synthetic-map.svg` and
 `examples/synthetic-replay.json` are explicitly fictional fixtures, never
